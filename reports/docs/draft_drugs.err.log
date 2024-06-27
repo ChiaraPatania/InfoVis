@@ -15,131 +15,226 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-df = pd.read_excel("10_drugsdelicten.xlsx", header=2)
+import pandas as pd
+import numpy as np
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+import plotly.express as px
 
-# Drop rows that are completely NaN
-df.dropna(how='all', inplace=True)
+# makeing a dataframe with the data of two separate datasets of the amount of crimes per country, per year. 
+# Most values align, but some are missing in one dataset and not in the other
+# To make the dataframe as complete as possible, we'll combine the two datasets
 
-# Rename columns for easier access
-df.columns = ['Country', '2021', '2020', '2019', '2018', '2017', 
-              '2016', '2015', '2014', '2013', '2012', '2011', 
-              '2010', '2009', '2008', '2007']
+crimes_1 = pd.read_csv("DLOs_europe_1.csv")
+crimes_2 = pd.read_csv("DLOs_europe_2.csv")
 
-# Drop any rows with NaN in the 'Country' column
-df.dropna(subset=['Country'], inplace=True)
+crimes_df1 = pd.DataFrame(crimes_1)
+crimes_df2 = pd.DataFrame(crimes_2)
 
-# Convert numerical columns to numeric types
-numeric_columns = df.columns.drop('Country')
-df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors='coerce')
+years = ['2022','2021','2020','2019','2018','2017','2016','2015','2014','2013','2012','2011','2010','2009','2008','2007']
 
-# Filter for Portugal
-portugal_data = df[df['Country'] == 'Portugal'][numeric_columns].squeeze().dropna().astype(int)
+# Function to compare values from the two dataframes and return a combined value
+def compare_values(self_value, other_value):
 
-# Calculate mean for Europe (excluding Portugal)
-europe_data = df[df['Country'] != 'Portugal'][numeric_columns]
-europe_mean = europe_data.mean()
+    # if both are Nan, keep Nan in the dataset
+    if pd.isna(self_value) and pd.isna(other_value):
+        return np.nan
 
-# Plotting
-plt.figure(figsize=(10, 6))
+    # if one value is NaN, keep the value of the other dataset
+    elif pd.isna(self_value):
+        return other_value
+    elif pd.isna(other_value):
+        return self_value
+    
+    # if values are the same
+    elif self_value == other_value:
+        return self_value
 
-# Plot Portugal data
-plt.plot(portugal_data.index.astype(int), portugal_data.values, label='Portugal', marker='o')
+    # if values are different, keep the mean
+    else:
+        return (self_value + other_value) / 2
 
-# Plot Europe mean data
-plt.plot(europe_mean.index.astype(int), europe_mean.values, label='Mean of Europe', marker='o', linestyle='--')
+# Create a new dictionary to store the combined data from the two dataframes
+combined_crimes = {'Country': crimes_df1['Country']}
 
-plt.xlabel('Year')
-plt.ylabel('Number of Drug Law Offences')
-plt.title('Comparison of Drug Law Offences: Portugal vs. Mean of Europe')
-plt.legend()
-plt.grid(True)
-plt.xticks(range(2007, 2022),rotation=45)
-plt.tight_layout()
-plt.show()
+# Loop through each year to process the data for that year
+for year in years:
 
-# Set the subtitle text
-subtitle = "Figure 2: Comparison of drug law offences in Portugal versus the mean of Europe, from 2007 untill 2021"
-print(subtitle)
+    # Check if the year exists in both dataframes
+    if year in crimes_df1.columns and year in crimes_df2.columns:
+        
+        # For each row, apply a the compare_values() function to compare and combine the values from both dataframes
+        combined_crimes[year] = crimes_df1.apply(
+            lambda row: compare_values(
+
+                # Value from the first dataframe
+                row[year], 
+
+                # Corresponding value from the second dataframe
+                crimes_df2.loc[crimes_df2['Country'] == row['Country'], year].values[0]
+
+                # Use np.nan if the country is not in the second dataframe
+                if row['Country'] in crimes_df2['Country'].values else np.nan 
+
+            ), axis=1
+        )
+        
+    # If the year exists only in the first dataframe, use those values
+    elif year in crimes_df1.columns:
+        combined_crimes[year] = crimes_df1[year]
+
+    # Same for the second dataframe
+    elif year in crimes_df2.columns:
+        combined_crimes[year] = crimes_df2[year]
+
+    # If the year exists in neither dataframe, use np.nan
+    else:
+        combined_crimes[year] = np.nan
+
+# Convert the dictionary to a DataFrame
+crimes_combined_df = pd.DataFrame(combined_crimes)
+
+
+# Making a dataframe for amount of crimes per 1000 inhabitants
+
+inhabitants = pd.read_csv("Population_europe.csv")
+inhabitants_df = inhabitants[['Country Name'] + years]
+inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
+
+# Function to calculate the number of crimes per 1000 inhabitants
+def calc_per_100_inhabitants(row, year):
+    if pd.isna(row[f'{year}']):
+        return np.nan
+    else:
+        return round(row[f'{year}'] / (inhabitants_df.at[row.name, f'{year}'] / 1000), 3)
+
+# Create a new DataFrame with the crime data per 1000 inhabitants
+per_inhabitants_df = crimes_combined_df.copy()
+
+for year in years:
+    if year in crimes_combined_df.columns and year in inhabitants_df.columns:
+        per_inhabitants_df[year] = crimes_combined_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
+
+per_inhabitants_df.reset_index(drop=True, inplace=True)
+
+# make interactive barplot
+
+app = dash.Dash(__name__)
+
+# html layout of the Dash application
+app.layout = html.Div([
+    html.H1("Comparison of the amount of drug crimes per year in portugal and other countries"),
+
+    html.Label("Select countries (Portugal is always included):"),
+    dcc.Dropdown(
+        id='country-selector',
+        options=[{'label': i, 'value': i} for i in crimes_combined_df['Country'].unique() if i != 'Portugal'],
+        value=['France', 'Spain'], 
+        multi=True
+    ),
+
+    html.Label("Selecteer Jaren:"),
+    dcc.Dropdown(
+        id='year-selector',
+        options=[{'label': i, 'value': i} for i in crimes_combined_df.columns if i != 'Country'],
+        value=['2021', '2017','2012', '2007'], 
+        multi=True
+    ),
+    html.Label("Select Scale:"),
+    dcc.Dropdown(
+        id='scale-selector',
+        options=[
+            {'label': 'Linear', 'value': 'linear'},
+            {'label': 'Logarithmic', 'value': 'log'}
+        ],
+        value='log', 
+    ),
+    html.Label("Select unit:"),
+    dcc.Dropdown(
+        id='data-selector',
+        options=[
+            {'label': 'Totaal amount of cases', 'value': 'total'},
+            {'label': 'cases/1000 inhabitants', 'value': 'per_inhabitants'}
+        ],
+        value='total', 
+    ),
+    dcc.Graph(id='bar-plot'),
+    html.Div(id='missing-data-warning', style={'color': 'red', 'margin-top': '20px'})
+], style={'backgroundColor': 'lightgrey', 'padding': '20px'})
+
+# Define the callback to update the graph and warning text
+@app.callback(
+    [Output('bar-plot', 'figure'), Output('missing-data-warning', 'children')],
+    [Input('country-selector', 'value'),
+     Input('year-selector', 'value'),
+     Input('scale-selector', 'value'),
+     Input('data-selector', 'value')]
+)
+
+def update_graph(selected_countries, selected_years, selected_scale, selected_data):
+    selected_countries.append('Portugal') 
+
+    # Choose the correct dataset based on the selected data type
+    filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else crimes_combined_df
+
+    # Filter the dataframe based on the selected countries and years
+    filtered_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
+    filtered_df = filtered_df.melt(id_vars=['Country'], value_vars=selected_years, var_name='Year', value_name='Cases')
+    
+    # make sure Portugal is always the first country in the plots
+    country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
+    
+    bars = []
+    missing_data_info = []
+    warning_text = ""
+
+    # Loop through each country to create bar plots and track missing data
+    for country in country_order:
+        country_data = filtered_df[filtered_df['Country'] == country]
+        bars.append(go.Bar(
+            x=country_data[pd.notna(country_data['Cases'])]['Year'],
+            y=country_data[pd.notna(country_data['Cases'])]['Cases'],
+            name=country
+        ))
+
+        nan_data = country_data[pd.isna(country_data['Cases'])]
+        if not nan_data.empty:
+            missing_data_info.append(f"{country} ({', '.join(nan_data['Year'])})")
+    
+    fig = go.Figure(data=bars)
+    fig.update_layout(
+        paper_bgcolor='lightgrey',
+        plot_bgcolor='white', 
+        font=dict(color='black'),  
+        yaxis_type=selected_scale,
+        title= "Amount of drug crimes per year for the selected years and countries",
+        xaxis_title="Year", 
+        yaxis_title= "Number of Crimes" if selected_data == 'total' else "Crimes per 1000 Inhabitants"
+    )
+
+    # Generate the warning text for missing data
+    warning_text = ""
+    if missing_data_info:
+        warning_text = "Please note that the following countries/years contain missing data: " + "; ".join(missing_data_info)
+    
+    return fig, warning_text
+
+# Run the Dash application
+if __name__ == '__main__':
+    app.run_server(debug=True)
 ------------------
 
 
 [0;31m---------------------------------------------------------------------------[0m
 [0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/compat/_optional.py:135[0m, in [0;36mimport_optional_dependency[0;34m(name, extra, errors, min_version)[0m
-[1;32m    134[0m [38;5;28;01mtry[39;00m:
-[0;32m--> 135[0m     module [38;5;241m=[39m [43mimportlib[49m[38;5;241;43m.[39;49m[43mimport_module[49m[43m([49m[43mname[49m[43m)[49m
-[1;32m    136[0m [38;5;28;01mexcept[39;00m [38;5;167;01mImportError[39;00m:
+Cell [0;32mIn[2], line 3[0m
+[1;32m      1[0m [38;5;28;01mimport[39;00m [38;5;21;01mpandas[39;00m [38;5;28;01mas[39;00m [38;5;21;01mpd[39;00m
+[1;32m      2[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[0;32m----> 3[0m [38;5;28;01mimport[39;00m [38;5;21;01mdash[39;00m
+[1;32m      4[0m [38;5;28;01mfrom[39;00m [38;5;21;01mdash[39;00m [38;5;28;01mimport[39;00m dcc, html
+[1;32m      5[0m [38;5;28;01mfrom[39;00m [38;5;21;01mdash[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdependencies[39;00m [38;5;28;01mimport[39;00m Input, Output
 
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/importlib/__init__.py:126[0m, in [0;36mimport_module[0;34m(name, package)[0m
-[1;32m    125[0m         level [38;5;241m+[39m[38;5;241m=[39m [38;5;241m1[39m
-[0;32m--> 126[0m [38;5;28;01mreturn[39;00m [43m_bootstrap[49m[38;5;241;43m.[39;49m[43m_gcd_import[49m[43m([49m[43mname[49m[43m[[49m[43mlevel[49m[43m:[49m[43m][49m[43m,[49m[43m [49m[43mpackage[49m[43m,[49m[43m [49m[43mlevel[49m[43m)[49m
-
-File [0;32m<frozen importlib._bootstrap>:1050[0m, in [0;36m_gcd_import[0;34m(name, package, level)[0m
-
-File [0;32m<frozen importlib._bootstrap>:1027[0m, in [0;36m_find_and_load[0;34m(name, import_)[0m
-
-File [0;32m<frozen importlib._bootstrap>:1004[0m, in [0;36m_find_and_load_unlocked[0;34m(name, import_)[0m
-
-[0;31mModuleNotFoundError[0m: No module named 'openpyxl'
-
-During handling of the above exception, another exception occurred:
-
-[0;31mImportError[0m                               Traceback (most recent call last)
-Cell [0;32mIn[3], line 1[0m
-[0;32m----> 1[0m df [38;5;241m=[39m [43mpd[49m[38;5;241;43m.[39;49m[43mread_excel[49m[43m([49m[38;5;124;43m"[39;49m[38;5;124;43m10_drugsdelicten.xlsx[39;49m[38;5;124;43m"[39;49m[43m,[49m[43m [49m[43mheader[49m[38;5;241;43m=[39;49m[38;5;241;43m2[39;49m[43m)[49m
-[1;32m      3[0m [38;5;66;03m# Drop rows that are completely NaN[39;00m
-[1;32m      4[0m df[38;5;241m.[39mdropna(how[38;5;241m=[39m[38;5;124m'[39m[38;5;124mall[39m[38;5;124m'[39m, inplace[38;5;241m=[39m[38;5;28;01mTrue[39;00m)
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/io/excel/_base.py:495[0m, in [0;36mread_excel[0;34m(io, sheet_name, header, names, index_col, usecols, dtype, engine, converters, true_values, false_values, skiprows, nrows, na_values, keep_default_na, na_filter, verbose, parse_dates, date_parser, date_format, thousands, decimal, comment, skipfooter, storage_options, dtype_backend, engine_kwargs)[0m
-[1;32m    493[0m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m [38;5;28misinstance[39m(io, ExcelFile):
-[1;32m    494[0m     should_close [38;5;241m=[39m [38;5;28;01mTrue[39;00m
-[0;32m--> 495[0m     io [38;5;241m=[39m [43mExcelFile[49m[43m([49m
-[1;32m    496[0m [43m        [49m[43mio[49m[43m,[49m
-[1;32m    497[0m [43m        [49m[43mstorage_options[49m[38;5;241;43m=[39;49m[43mstorage_options[49m[43m,[49m
-[1;32m    498[0m [43m        [49m[43mengine[49m[38;5;241;43m=[39;49m[43mengine[49m[43m,[49m
-[1;32m    499[0m [43m        [49m[43mengine_kwargs[49m[38;5;241;43m=[39;49m[43mengine_kwargs[49m[43m,[49m
-[1;32m    500[0m [43m    [49m[43m)[49m
-[1;32m    501[0m [38;5;28;01melif[39;00m engine [38;5;129;01mand[39;00m engine [38;5;241m!=[39m io[38;5;241m.[39mengine:
-[1;32m    502[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m(
-[1;32m    503[0m         [38;5;124m"[39m[38;5;124mEngine should not be specified when passing [39m[38;5;124m"[39m
-[1;32m    504[0m         [38;5;124m"[39m[38;5;124man ExcelFile - ExcelFile already has the engine set[39m[38;5;124m"[39m
-[1;32m    505[0m     )
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/io/excel/_base.py:1567[0m, in [0;36mExcelFile.__init__[0;34m(self, path_or_buffer, engine, storage_options, engine_kwargs)[0m
-[1;32m   1564[0m [38;5;28mself[39m[38;5;241m.[39mengine [38;5;241m=[39m engine
-[1;32m   1565[0m [38;5;28mself[39m[38;5;241m.[39mstorage_options [38;5;241m=[39m storage_options
-[0;32m-> 1567[0m [38;5;28mself[39m[38;5;241m.[39m_reader [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_engines[49m[43m[[49m[43mengine[49m[43m][49m[43m([49m
-[1;32m   1568[0m [43m    [49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_io[49m[43m,[49m
-[1;32m   1569[0m [43m    [49m[43mstorage_options[49m[38;5;241;43m=[39;49m[43mstorage_options[49m[43m,[49m
-[1;32m   1570[0m [43m    [49m[43mengine_kwargs[49m[38;5;241;43m=[39;49m[43mengine_kwargs[49m[43m,[49m
-[1;32m   1571[0m [43m[49m[43m)[49m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/io/excel/_openpyxl.py:552[0m, in [0;36mOpenpyxlReader.__init__[0;34m(self, filepath_or_buffer, storage_options, engine_kwargs)[0m
-[1;32m    534[0m [38;5;129m@doc[39m(storage_options[38;5;241m=[39m_shared_docs[[38;5;124m"[39m[38;5;124mstorage_options[39m[38;5;124m"[39m])
-[1;32m    535[0m [38;5;28;01mdef[39;00m [38;5;21m__init__[39m(
-[1;32m    536[0m     [38;5;28mself[39m,
-[0;32m   (...)[0m
-[1;32m    539[0m     engine_kwargs: [38;5;28mdict[39m [38;5;241m|[39m [38;5;28;01mNone[39;00m [38;5;241m=[39m [38;5;28;01mNone[39;00m,
-[1;32m    540[0m ) [38;5;241m-[39m[38;5;241m>[39m [38;5;28;01mNone[39;00m:
-[1;32m    541[0m [38;5;250m    [39m[38;5;124;03m"""[39;00m
-[1;32m    542[0m [38;5;124;03m    Reader using openpyxl engine.[39;00m
-[1;32m    543[0m 
-[0;32m   (...)[0m
-[1;32m    550[0m [38;5;124;03m        Arbitrary keyword arguments passed to excel engine.[39;00m
-[1;32m    551[0m [38;5;124;03m    """[39;00m
-[0;32m--> 552[0m     [43mimport_optional_dependency[49m[43m([49m[38;5;124;43m"[39;49m[38;5;124;43mopenpyxl[39;49m[38;5;124;43m"[39;49m[43m)[49m
-[1;32m    553[0m     [38;5;28msuper[39m()[38;5;241m.[39m[38;5;21m__init__[39m(
-[1;32m    554[0m         filepath_or_buffer,
-[1;32m    555[0m         storage_options[38;5;241m=[39mstorage_options,
-[1;32m    556[0m         engine_kwargs[38;5;241m=[39mengine_kwargs,
-[1;32m    557[0m     )
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/compat/_optional.py:138[0m, in [0;36mimport_optional_dependency[0;34m(name, extra, errors, min_version)[0m
-[1;32m    136[0m [38;5;28;01mexcept[39;00m [38;5;167;01mImportError[39;00m:
-[1;32m    137[0m     [38;5;28;01mif[39;00m errors [38;5;241m==[39m [38;5;124m"[39m[38;5;124mraise[39m[38;5;124m"[39m:
-[0;32m--> 138[0m         [38;5;28;01mraise[39;00m [38;5;167;01mImportError[39;00m(msg)
-[1;32m    139[0m     [38;5;28;01mreturn[39;00m [38;5;28;01mNone[39;00m
-[1;32m    141[0m [38;5;66;03m# Handle submodules: if we have submodule, grab parent module from sys.modules[39;00m
-
-[0;31mImportError[0m: Missing optional dependency 'openpyxl'.  Use pip or conda to install openpyxl.
+[0;31mModuleNotFoundError[0m: No module named 'dash'
 
