@@ -15,237 +15,17 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-# ! pip3 install dash
-# ! pip install dash
-
-# import pandas as pd
-# import numpy as np
-# import dash
-# from dash import dcc, html
-# from dash.dependencies import Input, Output
-# import plotly.graph_objs as go
-# import plotly.express as px
-
-# # makeing a dataframe with the data of two separate datasets of the amount of crimes per country, per year. 
-# # Most values align, but some are missing in one dataset and not in the other
-# # To make the dataframe as complete as possible, we'll combine the two datasets
-
-# crimes_1 = pd.read_csv("DLOs_europe_1.csv")
-# crimes_2 = pd.read_csv("DLOs_europe_2.csv")
-
-# crimes_df1 = pd.DataFrame(crimes_1)
-# crimes_df2 = pd.DataFrame(crimes_2)
-
-# years = ['2022','2021','2020','2019','2018','2017','2016','2015','2014','2013','2012','2011','2010','2009','2008','2007']
-
-# # Function to compare values from the two dataframes and return a combined value
-# def compare_values(self_value, other_value):
-
-#     # if both are Nan, keep Nan in the dataset
-#     if pd.isna(self_value) and pd.isna(other_value):
-#         return np.nan
-
-#     # if one value is NaN, keep the value of the other dataset
-#     elif pd.isna(self_value):
-#         return other_value
-#     elif pd.isna(other_value):
-#         return self_value
-    
-#     # if values are the same
-#     elif self_value == other_value:
-#         return self_value
-
-#     # if values are different, keep the mean
-#     else:
-#         return (self_value + other_value) / 2
-
-# # Create a new dictionary to store the combined data from the two dataframes
-# combined_crimes = {'Country': crimes_df1['Country']}
-
-# # Loop through each year to process the data for that year
-# for year in years:
-
-#     # Check if the year exists in both dataframes
-#     if year in crimes_df1.columns and year in crimes_df2.columns:
-        
-#         # For each row, apply a the compare_values() function to compare and combine the values from both dataframes
-#         combined_crimes[year] = crimes_df1.apply(
-#             lambda row: compare_values(
-
-#                 # Value from the first dataframe
-#                 row[year], 
-
-#                 # Corresponding value from the second dataframe
-#                 crimes_df2.loc[crimes_df2['Country'] == row['Country'], year].values[0]
-
-#                 # Use np.nan if the country is not in the second dataframe
-#                 if row['Country'] in crimes_df2['Country'].values else np.nan 
-
-#             ), axis=1
-#         )
-        
-#     # If the year exists only in the first dataframe, use those values
-#     elif year in crimes_df1.columns:
-#         combined_crimes[year] = crimes_df1[year]
-
-#     # Same for the second dataframe
-#     elif year in crimes_df2.columns:
-#         combined_crimes[year] = crimes_df2[year]
-
-#     # If the year exists in neither dataframe, use np.nan
-#     else:
-#         combined_crimes[year] = np.nan
-
-# # Convert the dictionary to a DataFrame
-# crimes_combined_df = pd.DataFrame(combined_crimes)
-
-
-# # Making a dataframe for amount of crimes per 1000 inhabitants
-
-# inhabitants = pd.read_csv("Population_europe.csv")
-# inhabitants_df = inhabitants[['Country Name'] + years].copy()
-# inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
-
-# # Function to calculate the number of crimes per 1000 inhabitants
-# def calc_per_100_inhabitants(row, year):
-#     if pd.isna(row[f'{year}']):
-#         return np.nan
-#     else:
-#         return round(row[f'{year}'] / (inhabitants_df.at[row.name, f'{year}'] / 1000), 3)
-
-# # Create a new DataFrame with the crime data per 1000 inhabitants
-# per_inhabitants_df = crimes_combined_df.copy()
-
-# for year in years:
-#     if year in crimes_combined_df.columns and year in inhabitants_df.columns:
-#         per_inhabitants_df[year] = crimes_combined_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
-
-# per_inhabitants_df.reset_index(drop=True, inplace=True)
-
-# # make interactive barplot
-
-# app = dash.Dash(__name__)
-
-# # html layout of the Dash application
-# app.layout = html.Div([
-#     html.H1("Comparison of the amount of drug crimes per year in portugal and other countries"),
-
-#     html.Label("Select countries (Portugal is always included):"),
-#     dcc.Dropdown(
-#         id='country-selector',
-#         options=[{'label': i, 'value': i} for i in crimes_combined_df['Country'].unique() if i != 'Portugal'],
-#         value=['France', 'Spain'], 
-#         multi=True
-#     ),
-
-#     html.Label("Selecteer Jaren:"),
-#     dcc.Dropdown(
-#         id='year-selector',
-#         options=[{'label': i, 'value': i} for i in crimes_combined_df.columns if i != 'Country'],
-#         value=['2021', '2017','2012', '2007'], 
-#         multi=True
-#     ),
-#     html.Label("Select Scale:"),
-#     dcc.Dropdown(
-#         id='scale-selector',
-#         options=[
-#             {'label': 'Linear', 'value': 'linear'},
-#             {'label': 'Logarithmic', 'value': 'log'}
-#         ],
-#         value='log', 
-#     ),
-#     html.Label("Select unit:"),
-#     dcc.Dropdown(
-#         id='data-selector',
-#         options=[
-#             {'label': 'Totaal amount of cases', 'value': 'total'},
-#             {'label': 'cases/1000 inhabitants', 'value': 'per_inhabitants'}
-#         ],
-#         value='total', 
-#     ),
-#     dcc.Graph(id='bar-plot'),
-#     html.Div(id='missing-data-warning', style={'color': 'red', 'margin-top': '20px'})
-# ], style={'backgroundColor': 'lightgrey', 'padding': '20px'})
-
-# # Define the callback to update the graph and warning text
-# @app.callback(
-#     [Output('bar-plot', 'figure'), Output('missing-data-warning', 'children')],
-#     [Input('country-selector', 'value'),
-#      Input('year-selector', 'value'),
-#      Input('scale-selector', 'value'),
-#      Input('data-selector', 'value')]
-# )
-
-# def update_graph(selected_countries, selected_years, selected_scale, selected_data):
-#     selected_countries.append('Portugal') 
-
-#     # Choose the correct dataset based on the selected data type
-#     filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else crimes_combined_df
-
-#     # Filter the dataframe based on the selected countries and years
-#     selected_countries_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
-#     final_df = selected_countries_df.melt(id_vars=['Country'], value_vars=selected_years, var_name='Year', value_name='Cases')
-    
-#     # make sure Portugal is always the first country in the plots
-#     country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
-    
-#     bars = []
-#     missing_data_info = []
-#     warning_text = ""
-
-#     # Loop through each country to create bar plots and track missing data
-#     for country in country_order:
-#         country_data = final_df[final_df['Country'] == country]
-#         bars.append(go.Bar(
-#             x=country_data[pd.notna(country_data['Cases'])]['Year'],
-#             y=country_data[pd.notna(country_data['Cases'])]['Cases'],
-#             name=country
-#         ))
-
-#         nan_data = country_data[pd.isna(country_data['Cases'])]
-#         if not nan_data.empty:
-#             missing_data_info.append(f"{country} ({', '.join(nan_data['Year'])})")
-    
-#     fig = go.Figure(data=bars)
-#     fig.update_layout(
-#         paper_bgcolor='lightgrey',
-#         plot_bgcolor='white', 
-#         font=dict(color='black'),  
-#         yaxis_type=selected_scale,
-#         title= "Amount of drug crimes per year for the selected years and countries",
-#         xaxis_title="Year", 
-#         yaxis_title= "Number of Crimes" if selected_data == 'total' else "Crimes per 1000 Inhabitants"
-#     )
-
-#     # Generate the warning text for missing data
-#     warning_text = ""
-#     if missing_data_info:
-#         warning_text = "Please note that the following countries/years contain missing data: " + "; ".join(missing_data_info)
-    
-#     return fig, warning_text
-
-# # Run the Dash application
-# if __name__ == '__main__':
-#     app.run_server(debug=True , port=8058)
-
-! pip3 install dash pandas plotly
-! pip install dash pandas plotly
-
-import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-import ipywidgets as widgets
-from IPython.display import display
+import pandas as pd
 
-# Load datasets
-crimes_df1 = pd.read_csv("DLOs_europe_1.csv")
-crimes_df2 = pd.read_csv("DLOs_europe_2.csv")
-inhabitants = pd.read_csv("Population_europe.csv")
+crimes_1 = pd.read_csv("DLOs_europe_1.csv")
+crimes_2 = pd.read_csv("DLOs_europe_2.csv")
 
-# Select relevant years
+crimes_df1 = pd.DataFrame(crimes_1)
+crimes_df2 = pd.DataFrame(crimes_2)
+
 years = ['2022','2021','2020','2019','2018','2017','2016','2015','2014','2013','2012','2011','2010','2009','2008','2007']
 
-# Function to compare and combine values from two dataframes
 def compare_values(self_value, other_value):
     if pd.isna(self_value) and pd.isna(other_value):
         return np.nan
@@ -258,15 +38,14 @@ def compare_values(self_value, other_value):
     else:
         return (self_value + other_value) / 2
 
-# Create combined dataframe for crimes
 combined_crimes = {'Country': crimes_df1['Country']}
 for year in years:
     if year in crimes_df1.columns and year in crimes_df2.columns:
         combined_crimes[year] = crimes_df1.apply(
             lambda row: compare_values(
-                row[year],
+                row[year], 
                 crimes_df2.loc[crimes_df2['Country'] == row['Country'], year].values[0]
-                if row['Country'] in crimes_df2['Country'].values else np.nan
+                if row['Country'] in crimes_df2['Country'].values else np.nan 
             ), axis=1
         )
     elif year in crimes_df1.columns:
@@ -278,192 +57,140 @@ for year in years:
 
 crimes_combined_df = pd.DataFrame(combined_crimes)
 
-# Function to calculate crimes per 1000 inhabitants
-inhabitants_df = inhabitants[['Country Name'] + years].copy()
-inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
 
-def calc_per_100_inhabitants(row, year):
-    if pd.isna(row[f'{year}']):
-        return np.nan
-    else:
-        return round(row[f'{year}'] / (inhabitants_df.at[row.name, f'{year}'] / 1000), 3)
+def create_bar_plot(countries):
+    fig = go.Figure()
 
-per_inhabitants_df = crimes_combined_df.copy()
-for year in years:
-    if year in crimes_combined_df.columns and year in inhabitants_df.columns:
-        per_inhabitants_df[year] = crimes_combined_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
+    for country in countries:
+        country_data = crimes_combined_df[crimes_combined_df['Country'] == country]
 
-per_inhabitants_df.reset_index(drop=True, inplace=True)
-
-# Dropdown widgets for country selection, year selection, scale selection, and data selection
-country_dropdown = widgets.SelectMultiple(
-    options=crimes_combined_df['Country'].unique().tolist(),
-    value=['France', 'Spain'], 
-    description='Select countries (Portugal included):',
-    disabled=False,
-)
-
-year_dropdown = widgets.SelectMultiple(
-    options=years,
-    value=['2021', '2017', '2012', '2007'],
-    description='Select years:',
-    disabled=False,
-)
-
-scale_dropdown = widgets.Dropdown(
-    options=['linear', 'log'],
-    value='log',
-    description='Select Scale:',
-    disabled=False,
-)
-
-data_dropdown = widgets.Dropdown(
-    options=['total', 'per_inhabitants'],
-    value='total',
-    description='Select unit:',
-    disabled=False,
-)
-
-# Create initial empty figure
-fig = go.FigureWidget()
-
-# Update function to handle widget changes
-def update_graph(change):
-    fig.data = []  # Clear existing traces
-    
-    selected_countries = country_dropdown.value
-    selected_years = year_dropdown.value
-    selected_scale = scale_dropdown.value
-    selected_data = data_dropdown.value
-
-    selected_countries = list(selected_countries) + ['Portugal']
-
-    # Choose the correct dataset based on the selected data type
-    filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else crimes_combined_df
-
-    # Filter the dataframe based on the selected countries and years
-    selected_countries_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
-    final_df = selected_countries_df.melt(id_vars=['Country'], value_vars=selected_years, var_name='Year', value_name='Cases')
-    
-    # Make sure Portugal is always the first country in the plots
-    country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
-
-    # Loop through each country to create bar plots and track missing data
-    for country in country_order:
-        country_data = final_df[final_df['Country'] == country]
         fig.add_trace(go.Bar(
-            x=country_data[pd.notna(country_data['Cases'])]['Year'],
-            y=country_data[pd.notna(country_data['Cases'])]['Cases'],
-            name=country
+            x=years,
+            y=country_data[years].values[0],
+            name=country,
+            width=0.2
         ))
 
     fig.update_layout(
-        paper_bgcolor='lightgrey',
-        plot_bgcolor='white', 
-        font=dict(color='black'),  
-        yaxis_type=selected_scale,
-        title= f"Amount of drug crimes per year for the selected years and countries ({selected_data})",
-        xaxis_title="Year", 
-        yaxis_title="Number of Crimes" if selected_data == 'total' else "Crimes per 1000 Inhabitants"
+        barmode='group',
+        title="Amount of drug crimes per year",
+        xaxis_title="Year",
+        yaxis_title="Amount of Cases",
+        template="plotly_white"
     )
+    return fig
 
-# Register update function with widgets
-country_dropdown.observe(update_graph, names='value')
-year_dropdown.observe(update_graph, names='value')
-scale_dropdown.observe(update_graph, names='value')
-data_dropdown.observe(update_graph, names='value')
+fig = create_bar_plot(['Portugal', 'Italy','France', 'Spain'])
 
-# Display the initial plot and widgets
-update_graph(None)  # Initialize plot with default values
-widgets.VBox([fig, country_dropdown, year_dropdown, scale_dropdown, data_dropdown])
+buttons = [
+    dict(
+        args=[
+            {'x': [years] * 4,
+             'y': [[crimes_combined_df[crimes_combined_df['Country'] == country][year].values[0]
+                    for year in years]
+                   for country in ['Portugal', 'Italy', 'France', 'Spain']],
+             'name': ['Portugal', 'Italy', 'France', 'Spain']}
+        ],
+        label='Culturally similar countries',
+        method='update'
+    ),
+    dict(
+        args=[
+            {'x': [years] * 4,
+             'y': [[crimes_combined_df[crimes_combined_df['Country'] == country][year].values[0]
+                    for year in years]
+                   for country in ['Portugal', 'Netherlands', 'Belgium', 'Denmark']],
+             'name': ['Portugal', 'Netherlands', 'Belgium', 'Denmark']}
+        ],
+        label='Active harm reduction policies',
+        method='update'
+    )
+]
 
+fig.update_layout(
+    updatemenus=[
+        dict(
+            buttons=buttons,
+            direction='down',
+            showactive=True,
+            x=0.5,
+            xanchor='center',
+            y=1.1,
+            yanchor='top'
+        ),
+    ]
+)
+
+fig.show()
 ------------------
 
------ stdout -----
-Requirement already satisfied: dash in /usr/local/lib/python3.11/site-packages (2.17.1)
------ stdout -----
-Requirement already satisfied: pandas in /usr/local/lib/python3.11/site-packages (2.2.1)
-Requirement already satisfied: plotly in /usr/local/lib/python3.11/site-packages (5.22.0)
-Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
-Requirement already satisfied: Werkzeug<3.1 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
-Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-table==5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.0.0)
-Requirement already satisfied: importlib-metadata in /usr/local/lib/python3.11/site-packages (from dash) (7.2.0)
-Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/lib/python3.11/site-packages (from dash) (4.12.2)
-Requirement already satisfied: requests in /usr/local/lib/python3.11/site-packages (from dash) (2.31.0)
-Requirement already satisfied: retrying in /usr/local/lib/python3.11/site-packages (from dash) (1.3.4)
-Requirement already satisfied: nest-asyncio in /usr/local/lib/python3.11/site-packages (from dash) (1.6.0)
-Requirement already satisfied: setuptools in /usr/local/lib/python3.11/site-packages (from dash) (69.0.2)
------ stdout -----
-Requirement already satisfied: numpy<2,>=1.23.2 in /usr/local/lib/python3.11/site-packages (from pandas) (1.26.4)
-Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.11/site-packages (from pandas) (2.9.0.post0)
-Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.11/site-packages (from pandas) (2024.1)
-Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.11/site-packages (from pandas) (2024.1)
------ stdout -----
-Requirement already satisfied: tenacity>=6.2.0 in /usr/local/lib/python3.11/site-packages (from plotly) (8.3.0)
-Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from plotly) (23.2)
-Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.3)
-Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
-Requirement already satisfied: click>=8.1.3 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
-Requirement already satisfied: blinker>=1.6.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
-Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.11/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
-Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/lib/python3.11/site-packages (from Werkzeug<3.1->dash) (2.1.5)
-Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.11/site-packages (from importlib-metadata->dash) (3.19.2)
------ stdout -----
-Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.3.2)
-Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.6)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2.2.1)
-Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2024.2.2)
------ stdout -----
-
-[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.3.1[0m[39;49m -> [0m[32;49m24.1[0m
-[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49m/usr/local/opt/python@3.11/bin/python3.11 -m pip install --upgrade pip[0m
------ stdout -----
-Requirement already satisfied: dash in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (2.17.1)
-Requirement already satisfied: pandas in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (2.2.2)
-Requirement already satisfied: plotly in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (5.22.0)
-Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
-Requirement already satisfied: Werkzeug<3.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
-Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-table==5.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (5.0.0)
------ stdout -----
-Requirement already satisfied: importlib-metadata in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (7.1.0)
-Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (4.12.1)
-Requirement already satisfied: requests in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.32.3)
-Requirement already satisfied: retrying in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.3.4)
-Requirement already satisfied: nest-asyncio in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.6.0)
-Requirement already satisfied: setuptools in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (69.5.1)
------ stdout -----
-Requirement already satisfied: numpy>=1.22.4 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (1.26.4)
-Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2.9.0)
-Requirement already satisfied: pytz>=2020.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2024.1)
-Requirement already satisfied: tzdata>=2022.7 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2024.1)
-Requirement already satisfied: tenacity>=6.2.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly) (8.3.0)
-Requirement already satisfied: packaging in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly) (24.0)
-Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.4)
-Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
-Requirement already satisfied: click>=8.1.3 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
-Requirement already satisfied: blinker>=1.6.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
-Requirement already satisfied: six>=1.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
------ stdout -----
-Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Werkzeug<3.1->dash) (2.1.5)
-Requirement already satisfied: zipp>=0.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from importlib-metadata->dash) (3.17.0)
-Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.3.2)
-Requirement already satisfied: idna<4,>=2.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.7)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2.2.1)
-Requirement already satisfied: certifi>=2017.4.17 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2024.2.2)
-------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-Cell [0;32mIn[1], line 220[0m
-[1;32m    218[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
-[1;32m    219[0m [38;5;28;01mimport[39;00m [38;5;21;01mplotly[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgraph_objects[39;00m [38;5;28;01mas[39;00m [38;5;21;01mgo[39;00m
-[0;32m--> 220[0m [38;5;28;01mimport[39;00m [38;5;21;01mipywidgets[39;00m [38;5;28;01mas[39;00m [38;5;21;01mwidgets[39;00m
-[1;32m    221[0m [38;5;28;01mfrom[39;00m [38;5;21;01mIPython[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdisplay[39;00m [38;5;28;01mimport[39;00m display
-[1;32m    223[0m [38;5;66;03m# Load datasets[39;00m
+[0;31mNameError[0m                                 Traceback (most recent call last)
+Cell [0;32mIn[1], line 27[0m
+[1;32m     25[0m [38;5;28;01mfor[39;00m year [38;5;129;01min[39;00m years:
+[1;32m     26[0m     [38;5;28;01mif[39;00m year [38;5;129;01min[39;00m crimes_df1[38;5;241m.[39mcolumns [38;5;129;01mand[39;00m year [38;5;129;01min[39;00m crimes_df2[38;5;241m.[39mcolumns:
+[0;32m---> 27[0m         combined_crimes[year] [38;5;241m=[39m [43mcrimes_df1[49m[38;5;241;43m.[39;49m[43mapply[49m[43m([49m
+[1;32m     28[0m [43m            [49m[38;5;28;43;01mlambda[39;49;00m[43m [49m[43mrow[49m[43m:[49m[43m [49m[43mcompare_values[49m[43m([49m
+[1;32m     29[0m [43m                [49m[43mrow[49m[43m[[49m[43myear[49m[43m][49m[43m,[49m[43m [49m
+[1;32m     30[0m [43m                [49m[43mcrimes_df2[49m[38;5;241;43m.[39;49m[43mloc[49m[43m[[49m[43mcrimes_df2[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m [49m[38;5;241;43m==[39;49m[43m [49m[43mrow[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m,[49m[43m [49m[43myear[49m[43m][49m[38;5;241;43m.[39;49m[43mvalues[49m[43m[[49m[38;5;241;43m0[39;49m[43m][49m
+[1;32m     31[0m [43m                [49m[38;5;28;43;01mif[39;49;00m[43m [49m[43mrow[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m [49m[38;5;129;43;01min[39;49;00m[43m [49m[43mcrimes_df2[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[38;5;241;43m.[39;49m[43mvalues[49m[43m [49m[38;5;28;43;01melse[39;49;00m[43m [49m[43mnp[49m[38;5;241;43m.[39;49m[43mnan[49m[43m [49m
+[1;32m     32[0m [43m            [49m[43m)[49m[43m,[49m[43m [49m[43maxis[49m[38;5;241;43m=[39;49m[38;5;241;43m1[39;49m
+[1;32m     33[0m [43m        [49m[43m)[49m
+[1;32m     34[0m     [38;5;28;01melif[39;00m year [38;5;129;01min[39;00m crimes_df1[38;5;241m.[39mcolumns:
+[1;32m     35[0m         combined_crimes[year] [38;5;241m=[39m crimes_df1[year]
 
-[0;31mModuleNotFoundError[0m: No module named 'ipywidgets'
+File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/core/frame.py:10374[0m, in [0;36mDataFrame.apply[0;34m(self, func, axis, raw, result_type, args, by_row, engine, engine_kwargs, **kwargs)[0m
+[1;32m  10360[0m [38;5;28;01mfrom[39;00m [38;5;21;01mpandas[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcore[39;00m[38;5;21;01m.[39;00m[38;5;21;01mapply[39;00m [38;5;28;01mimport[39;00m frame_apply
+[1;32m  10362[0m op [38;5;241m=[39m frame_apply(
+[1;32m  10363[0m     [38;5;28mself[39m,
+[1;32m  10364[0m     func[38;5;241m=[39mfunc,
+[0;32m   (...)[0m
+[1;32m  10372[0m     kwargs[38;5;241m=[39mkwargs,
+[1;32m  10373[0m )
+[0;32m> 10374[0m [38;5;28;01mreturn[39;00m [43mop[49m[38;5;241;43m.[39;49m[43mapply[49m[43m([49m[43m)[49m[38;5;241m.[39m__finalize__([38;5;28mself[39m, method[38;5;241m=[39m[38;5;124m"[39m[38;5;124mapply[39m[38;5;124m"[39m)
+
+File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/core/apply.py:916[0m, in [0;36mFrameApply.apply[0;34m(self)[0m
+[1;32m    913[0m [38;5;28;01melif[39;00m [38;5;28mself[39m[38;5;241m.[39mraw:
+[1;32m    914[0m     [38;5;28;01mreturn[39;00m [38;5;28mself[39m[38;5;241m.[39mapply_raw(engine[38;5;241m=[39m[38;5;28mself[39m[38;5;241m.[39mengine, engine_kwargs[38;5;241m=[39m[38;5;28mself[39m[38;5;241m.[39mengine_kwargs)
+[0;32m--> 916[0m [38;5;28;01mreturn[39;00m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mapply_standard[49m[43m([49m[43m)[49m
+
+File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/core/apply.py:1063[0m, in [0;36mFrameApply.apply_standard[0;34m(self)[0m
+[1;32m   1061[0m [38;5;28;01mdef[39;00m [38;5;21mapply_standard[39m([38;5;28mself[39m):
+[1;32m   1062[0m     [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39mengine [38;5;241m==[39m [38;5;124m"[39m[38;5;124mpython[39m[38;5;124m"[39m:
+[0;32m-> 1063[0m         results, res_index [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mapply_series_generator[49m[43m([49m[43m)[49m
+[1;32m   1064[0m     [38;5;28;01melse[39;00m:
+[1;32m   1065[0m         results, res_index [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mapply_series_numba()
+
+File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/pandas/core/apply.py:1081[0m, in [0;36mFrameApply.apply_series_generator[0;34m(self)[0m
+[1;32m   1078[0m [38;5;28;01mwith[39;00m option_context([38;5;124m"[39m[38;5;124mmode.chained_assignment[39m[38;5;124m"[39m, [38;5;28;01mNone[39;00m):
+[1;32m   1079[0m     [38;5;28;01mfor[39;00m i, v [38;5;129;01min[39;00m [38;5;28menumerate[39m(series_gen):
+[1;32m   1080[0m         [38;5;66;03m# ignore SettingWithCopy here in case the user mutates[39;00m
+[0;32m-> 1081[0m         results[i] [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mfunc[49m[43m([49m[43mv[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mkwargs[49m[43m)[49m
+[1;32m   1082[0m         [38;5;28;01mif[39;00m [38;5;28misinstance[39m(results[i], ABCSeries):
+[1;32m   1083[0m             [38;5;66;03m# If we have a view on v, we need to make a copy because[39;00m
+[1;32m   1084[0m             [38;5;66;03m#  series_generator will swap out the underlying data[39;00m
+[1;32m   1085[0m             results[i] [38;5;241m=[39m results[i][38;5;241m.[39mcopy(deep[38;5;241m=[39m[38;5;28;01mFalse[39;00m)
+
+Cell [0;32mIn[1], line 28[0m, in [0;36m<lambda>[0;34m(row)[0m
+[1;32m     25[0m [38;5;28;01mfor[39;00m year [38;5;129;01min[39;00m years:
+[1;32m     26[0m     [38;5;28;01mif[39;00m year [38;5;129;01min[39;00m crimes_df1[38;5;241m.[39mcolumns [38;5;129;01mand[39;00m year [38;5;129;01min[39;00m crimes_df2[38;5;241m.[39mcolumns:
+[1;32m     27[0m         combined_crimes[year] [38;5;241m=[39m crimes_df1[38;5;241m.[39mapply(
+[0;32m---> 28[0m             [38;5;28;01mlambda[39;00m row: [43mcompare_values[49m[43m([49m
+[1;32m     29[0m [43m                [49m[43mrow[49m[43m[[49m[43myear[49m[43m][49m[43m,[49m[43m [49m
+[1;32m     30[0m [43m                [49m[43mcrimes_df2[49m[38;5;241;43m.[39;49m[43mloc[49m[43m[[49m[43mcrimes_df2[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m [49m[38;5;241;43m==[39;49m[43m [49m[43mrow[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m,[49m[43m [49m[43myear[49m[43m][49m[38;5;241;43m.[39;49m[43mvalues[49m[43m[[49m[38;5;241;43m0[39;49m[43m][49m
+[1;32m     31[0m [43m                [49m[38;5;28;43;01mif[39;49;00m[43m [49m[43mrow[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[43m [49m[38;5;129;43;01min[39;49;00m[43m [49m[43mcrimes_df2[49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mCountry[39;49m[38;5;124;43m'[39;49m[43m][49m[38;5;241;43m.[39;49m[43mvalues[49m[43m [49m[38;5;28;43;01melse[39;49;00m[43m [49m[43mnp[49m[38;5;241;43m.[39;49m[43mnan[49m[43m [49m
+[1;32m     32[0m [43m            [49m[43m)[49m, axis[38;5;241m=[39m[38;5;241m1[39m
+[1;32m     33[0m         )
+[1;32m     34[0m     [38;5;28;01melif[39;00m year [38;5;129;01min[39;00m crimes_df1[38;5;241m.[39mcolumns:
+[1;32m     35[0m         combined_crimes[year] [38;5;241m=[39m crimes_df1[year]
+
+Cell [0;32mIn[1], line 14[0m, in [0;36mcompare_values[0;34m(self_value, other_value)[0m
+[1;32m     12[0m [38;5;28;01mdef[39;00m [38;5;21mcompare_values[39m(self_value, other_value):
+[1;32m     13[0m     [38;5;28;01mif[39;00m pd[38;5;241m.[39misna(self_value) [38;5;129;01mand[39;00m pd[38;5;241m.[39misna(other_value):
+[0;32m---> 14[0m         [38;5;28;01mreturn[39;00m [43mnp[49m[38;5;241m.[39mnan
+[1;32m     15[0m     [38;5;28;01melif[39;00m pd[38;5;241m.[39misna(self_value):
+[1;32m     16[0m         [38;5;28;01mreturn[39;00m other_value
+
+[0;31mNameError[0m: name 'np' is not defined
 
