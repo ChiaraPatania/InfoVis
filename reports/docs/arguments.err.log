@@ -15,6 +15,9 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
+! pip3 install dash
+! pip install dash
+
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -62,6 +65,104 @@ if __name__ == '__main__':
     app1.run_server(debug=True, port=8053)
 ------------------
 
+----- stdout -----
+Requirement already satisfied: dash in /usr/local/lib/python3.11/site-packages (2.17.1)
+Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
+----- stdout -----
+Requirement already satisfied: Werkzeug<3.1 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
+Requirement already satisfied: plotly>=5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.22.0)
+Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-table==5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.0.0)
+Requirement already satisfied: importlib-metadata in /usr/local/lib/python3.11/site-packages (from dash) (7.2.0)
+Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/lib/python3.11/site-packages (from dash) (4.12.2)
+Requirement already satisfied: requests in /usr/local/lib/python3.11/site-packages (from dash) (2.31.0)
+Requirement already satisfied: retrying in /usr/local/lib/python3.11/site-packages (from dash) (1.3.4)
+Requirement already satisfied: nest-asyncio in /usr/local/lib/python3.11/site-packages (from dash) (1.6.0)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.11/site-packages (from dash) (69.0.2)
+Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.3)
+Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
+Requirement already satisfied: click>=8.1.3 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
+Requirement already satisfied: blinker>=1.6.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
+Requirement already satisfied: tenacity>=6.2.0 in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (8.3.0)
+Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (23.2)
+Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/lib/python3.11/site-packages (from Werkzeug<3.1->dash) (2.1.5)
+----- stdout -----
+Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.11/site-packages (from importlib-metadata->dash) (3.19.2)
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2.2.1)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2024.2.2)
+Requirement already satisfied: six>=1.7.0 in /usr/local/lib/python3.11/site-packages (from retrying->dash) (1.16.0)
+----- stdout -----
+
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.3.1[0m[39;49m -> [0m[32;49m24.1[0m
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49m/usr/local/opt/python@3.11/bin/python3.11 -m pip install --upgrade pip[0m
+----- stdout -----
+Collecting dash
+----- stdout -----
+  Using cached dash-2.17.1-py3-none-any.whl.metadata (10 kB)
+----- stdout -----
+Collecting Flask<3.1,>=1.0.4 (from dash)
+  Using cached flask-3.0.3-py3-none-any.whl.metadata (3.2 kB)
+----- stdout -----
+Collecting Werkzeug<3.1 (from dash)
+  Using cached werkzeug-3.0.3-py3-none-any.whl.metadata (3.7 kB)
+Requirement already satisfied: plotly>=5.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (5.22.0)
+----- stdout -----
+Collecting dash-html-components==2.0.0 (from dash)
+----- stdout -----
+  Using cached dash_html_components-2.0.0-py3-none-any.whl.metadata (3.8 kB)
+----- stdout -----
+Collecting dash-core-components==2.0.0 (from dash)
+  Using cached dash_core_components-2.0.0-py3-none-any.whl.metadata (2.9 kB)
+----- stdout -----
+Collecting dash-table==5.0.0 (from dash)
+  Using cached dash_table-5.0.0-py3-none-any.whl.metadata (2.4 kB)
+Requirement already satisfied: importlib-metadata in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (7.1.0)
+Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (4.12.1)
+Requirement already satisfied: requests in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.32.3)
+----- stdout -----
+Collecting retrying (from dash)
+----- stdout -----
+  Using cached retrying-1.3.4-py3-none-any.whl.metadata (6.9 kB)
+Requirement already satisfied: nest-asyncio in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.6.0)
+Requirement already satisfied: setuptools in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (69.5.1)
+Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.4)
+----- stdout -----
+Collecting itsdangerous>=2.1.2 (from Flask<3.1,>=1.0.4->dash)
+  Using cached itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+----- stdout -----
+Requirement already satisfied: click>=8.1.3 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
+Collecting blinker>=1.6.2 (from Flask<3.1,>=1.0.4->dash)
+----- stdout -----
+  Using cached blinker-1.8.2-py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: tenacity>=6.2.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (8.3.0)
+Requirement already satisfied: packaging in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (24.0)
+Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Werkzeug<3.1->dash) (2.1.5)
+----- stdout -----
+Requirement already satisfied: zipp>=0.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from importlib-metadata->dash) (3.17.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.7)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2.2.1)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2024.2.2)
+Requirement already satisfied: six>=1.7.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from retrying->dash) (1.16.0)
+----- stdout -----
+Using cached dash-2.17.1-py3-none-any.whl (7.5 MB)
+----- stdout -----
+Using cached dash_core_components-2.0.0-py3-none-any.whl (3.8 kB)
+Using cached dash_html_components-2.0.0-py3-none-any.whl (4.1 kB)
+----- stdout -----
+Using cached dash_table-5.0.0-py3-none-any.whl (3.9 kB)
+Using cached flask-3.0.3-py3-none-any.whl (101 kB)
+Using cached werkzeug-3.0.3-py3-none-any.whl (227 kB)
+Using cached retrying-1.3.4-py3-none-any.whl (11 kB)
+Using cached blinker-1.8.2-py3-none-any.whl (9.5 kB)
+Using cached itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+----- stdout -----
+Installing collected packages: dash-table, dash-html-components, dash-core-components, Werkzeug, retrying, itsdangerous, blinker, Flask, dash
+----- stdout -----
+Successfully installed Flask-3.0.3 Werkzeug-3.0.3 blinker-1.8.2 dash-2.17.1 dash-core-components-2.0.0 dash-html-components-2.0.0 dash-table-5.0.0 itsdangerous-2.2.0 retrying-1.3.4
 ----- stderr -----
 Address already in use
 Port 8053 is in use by another program. Either identify and stop that program, or start the server with a different port.
@@ -91,9 +192,9 @@ During handling of the above exception, another exception occurred:
 [0;31mSystemExit[0m                                Traceback (most recent call last)
     [0;31m[... skipping hidden 1 frame][0m
 
-Cell [0;32mIn[3], line 45[0m
-[1;32m     44[0m [38;5;28;01mif[39;00m [38;5;18m__name__[39m [38;5;241m==[39m [38;5;124m'[39m[38;5;124m__main__[39m[38;5;124m'[39m:
-[0;32m---> 45[0m     [43mapp1[49m[38;5;241;43m.[39;49m[43mrun_server[49m[43m([49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mport[49m[38;5;241;43m=[39;49m[38;5;241;43m8053[39;49m[43m)[49m
+Cell [0;32mIn[1], line 48[0m
+[1;32m     47[0m [38;5;28;01mif[39;00m [38;5;18m__name__[39m [38;5;241m==[39m [38;5;124m'[39m[38;5;124m__main__[39m[38;5;124m'[39m:
+[0;32m---> 48[0m     [43mapp1[49m[38;5;241;43m.[39;49m[43mrun_server[49m[43m([49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mport[49m[38;5;241;43m=[39;49m[38;5;241;43m8053[39;49m[43m)[49m
 
 File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2277[0m, in [0;36mDash.run_server[0;34m(self, *args, **kwargs)[0m
 [1;32m   2272[0m [38;5;250m[39m[38;5;124;03m"""`run_server` is a deprecated alias of `run` and may be removed in a[39;00m
