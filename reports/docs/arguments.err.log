@@ -15,102 +15,376 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-import pandas as pd
-from pandas import *
-# import matplotlib.pyplot as plt
-# import seaborn as sns
+# ! pip3 install dash
+# ! pip install dash
+
+# import pandas as pd
+# import numpy as np
 # import dash
 # from dash import dcc, html
 # from dash.dependencies import Input, Output
+# import plotly.graph_objs as go
 # import plotly.express as px
 
-df = pd.read_csv("statesdata.csv")
-df.columns = df.columns.str.strip()
+# # makeing a dataframe with the data of two separate datasets of the amount of crimes per country, per year. 
+# # Most values align, but some are missing in one dataset and not in the other
+# # To make the dataframe as complete as possible, we'll combine the two datasets
 
-# Check for 'YEAR' column
-if 'YEAR' not in df.columns:
-    raise KeyError("The 'YEAR' column is missing or misspelled in the DataFrame.")
+# crimes_1 = pd.read_csv("DLOs_europe_1.csv")
+# crimes_2 = pd.read_csv("DLOs_europe_2.csv")
 
-# Calculate min and max values for RATE to set fixed color scale
-min_rate = df['RATE'].min()
-max_rate = df['RATE'].max()
+# crimes_df1 = pd.DataFrame(crimes_1)
+# crimes_df2 = pd.DataFrame(crimes_2)
 
-# Sort years to ensure the slider goes from earliest to latest year
-years = sorted(df['YEAR'].unique())
+# years = ['2022','2021','2020','2019','2018','2017','2016','2015','2014','2013','2012','2011','2010','2009','2008','2007']
 
-# Initialize the figure
-fig = go.Figure()
+# # Function to compare values from the two dataframes and return a combined value
+# def compare_values(self_value, other_value):
 
-# Create a choropleth map for each year and add it to the figure
+#     # if both are Nan, keep Nan in the dataset
+#     if pd.isna(self_value) and pd.isna(other_value):
+#         return np.nan
+
+#     # if one value is NaN, keep the value of the other dataset
+#     elif pd.isna(self_value):
+#         return other_value
+#     elif pd.isna(other_value):
+#         return self_value
+    
+#     # if values are the same
+#     elif self_value == other_value:
+#         return self_value
+
+#     # if values are different, keep the mean
+#     else:
+#         return (self_value + other_value) / 2
+
+# # Create a new dictionary to store the combined data from the two dataframes
+# combined_crimes = {'Country': crimes_df1['Country']}
+
+# # Loop through each year to process the data for that year
+# for year in years:
+
+#     # Check if the year exists in both dataframes
+#     if year in crimes_df1.columns and year in crimes_df2.columns:
+        
+#         # For each row, apply a the compare_values() function to compare and combine the values from both dataframes
+#         combined_crimes[year] = crimes_df1.apply(
+#             lambda row: compare_values(
+
+#                 # Value from the first dataframe
+#                 row[year], 
+
+#                 # Corresponding value from the second dataframe
+#                 crimes_df2.loc[crimes_df2['Country'] == row['Country'], year].values[0]
+
+#                 # Use np.nan if the country is not in the second dataframe
+#                 if row['Country'] in crimes_df2['Country'].values else np.nan 
+
+#             ), axis=1
+#         )
+        
+#     # If the year exists only in the first dataframe, use those values
+#     elif year in crimes_df1.columns:
+#         combined_crimes[year] = crimes_df1[year]
+
+#     # Same for the second dataframe
+#     elif year in crimes_df2.columns:
+#         combined_crimes[year] = crimes_df2[year]
+
+#     # If the year exists in neither dataframe, use np.nan
+#     else:
+#         combined_crimes[year] = np.nan
+
+# # Convert the dictionary to a DataFrame
+# crimes_combined_df = pd.DataFrame(combined_crimes)
+
+
+# # Making a dataframe for amount of crimes per 1000 inhabitants
+
+# inhabitants = pd.read_csv("Population_europe.csv")
+# inhabitants_df = inhabitants[['Country Name'] + years].copy()
+# inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
+
+# # Function to calculate the number of crimes per 1000 inhabitants
+# def calc_per_100_inhabitants(row, year):
+#     if pd.isna(row[f'{year}']):
+#         return np.nan
+#     else:
+#         return round(row[f'{year}'] / (inhabitants_df.at[row.name, f'{year}'] / 1000), 3)
+
+# # Create a new DataFrame with the crime data per 1000 inhabitants
+# per_inhabitants_df = crimes_combined_df.copy()
+
+# for year in years:
+#     if year in crimes_combined_df.columns and year in inhabitants_df.columns:
+#         per_inhabitants_df[year] = crimes_combined_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
+
+# per_inhabitants_df.reset_index(drop=True, inplace=True)
+
+# # make interactive barplot
+
+# app = dash.Dash(__name__)
+
+# # html layout of the Dash application
+# app.layout = html.Div([
+#     html.H1("Comparison of the amount of drug crimes per year in portugal and other countries"),
+
+#     html.Label("Select countries (Portugal is always included):"),
+#     dcc.Dropdown(
+#         id='country-selector',
+#         options=[{'label': i, 'value': i} for i in crimes_combined_df['Country'].unique() if i != 'Portugal'],
+#         value=['France', 'Spain'], 
+#         multi=True
+#     ),
+
+#     html.Label("Selecteer Jaren:"),
+#     dcc.Dropdown(
+#         id='year-selector',
+#         options=[{'label': i, 'value': i} for i in crimes_combined_df.columns if i != 'Country'],
+#         value=['2021', '2017','2012', '2007'], 
+#         multi=True
+#     ),
+#     html.Label("Select Scale:"),
+#     dcc.Dropdown(
+#         id='scale-selector',
+#         options=[
+#             {'label': 'Linear', 'value': 'linear'},
+#             {'label': 'Logarithmic', 'value': 'log'}
+#         ],
+#         value='log', 
+#     ),
+#     html.Label("Select unit:"),
+#     dcc.Dropdown(
+#         id='data-selector',
+#         options=[
+#             {'label': 'Totaal amount of cases', 'value': 'total'},
+#             {'label': 'cases/1000 inhabitants', 'value': 'per_inhabitants'}
+#         ],
+#         value='total', 
+#     ),
+#     dcc.Graph(id='bar-plot'),
+#     html.Div(id='missing-data-warning', style={'color': 'red', 'margin-top': '20px'})
+# ], style={'backgroundColor': 'lightgrey', 'padding': '20px'})
+
+# # Define the callback to update the graph and warning text
+# @app.callback(
+#     [Output('bar-plot', 'figure'), Output('missing-data-warning', 'children')],
+#     [Input('country-selector', 'value'),
+#      Input('year-selector', 'value'),
+#      Input('scale-selector', 'value'),
+#      Input('data-selector', 'value')]
+# )
+
+# def update_graph(selected_countries, selected_years, selected_scale, selected_data):
+#     selected_countries.append('Portugal') 
+
+#     # Choose the correct dataset based on the selected data type
+#     filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else crimes_combined_df
+
+#     # Filter the dataframe based on the selected countries and years
+#     selected_countries_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
+#     final_df = selected_countries_df.melt(id_vars=['Country'], value_vars=selected_years, var_name='Year', value_name='Cases')
+    
+#     # make sure Portugal is always the first country in the plots
+#     country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
+    
+#     bars = []
+#     missing_data_info = []
+#     warning_text = ""
+
+#     # Loop through each country to create bar plots and track missing data
+#     for country in country_order:
+#         country_data = final_df[final_df['Country'] == country]
+#         bars.append(go.Bar(
+#             x=country_data[pd.notna(country_data['Cases'])]['Year'],
+#             y=country_data[pd.notna(country_data['Cases'])]['Cases'],
+#             name=country
+#         ))
+
+#         nan_data = country_data[pd.isna(country_data['Cases'])]
+#         if not nan_data.empty:
+#             missing_data_info.append(f"{country} ({', '.join(nan_data['Year'])})")
+    
+#     fig = go.Figure(data=bars)
+#     fig.update_layout(
+#         paper_bgcolor='lightgrey',
+#         plot_bgcolor='white', 
+#         font=dict(color='black'),  
+#         yaxis_type=selected_scale,
+#         title= "Amount of drug crimes per year for the selected years and countries",
+#         xaxis_title="Year", 
+#         yaxis_title= "Number of Crimes" if selected_data == 'total' else "Crimes per 1000 Inhabitants"
+#     )
+
+#     # Generate the warning text for missing data
+#     warning_text = ""
+#     if missing_data_info:
+#         warning_text = "Please note that the following countries/years contain missing data: " + "; ".join(missing_data_info)
+    
+#     return fig, warning_text
+
+# # Run the Dash application
+# if __name__ == '__main__':
+#     app.run_server(debug=True , port=8058)
+
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import ipywidgets as widgets
+from IPython.display import display
+
+# Load datasets
+crimes_df1 = pd.read_csv("DLOs_europe_1.csv")
+crimes_df2 = pd.read_csv("DLOs_europe_2.csv")
+inhabitants = pd.read_csv("Population_europe.csv")
+
+# Select relevant years
+years = ['2022','2021','2020','2019','2018','2017','2016','2015','2014','2013','2012','2011','2010','2009','2008','2007']
+
+# Function to compare and combine values from two dataframes
+def compare_values(self_value, other_value):
+    if pd.isna(self_value) and pd.isna(other_value):
+        return np.nan
+    elif pd.isna(self_value):
+        return other_value
+    elif pd.isna(other_value):
+        return self_value
+    elif self_value == other_value:
+        return self_value
+    else:
+        return (self_value + other_value) / 2
+
+# Create combined dataframe for crimes
+combined_crimes = {'Country': crimes_df1['Country']}
 for year in years:
-    filtered_df = df[df['YEAR'] == year]
-    fig.add_trace(
-        go.Choropleth(
-            locations=filtered_df['STATE'],
-            z=filtered_df['RATE'],
-            locationmode='USA-states',
-            colorscale='Turbo',
-            zmin=min_rate,
-            zmax=max_rate,
-            hovertext=filtered_df['STATE'],
-            hoverinfo='location+z+text',
-            visible=False,
-            name=str(year)
+    if year in crimes_df1.columns and year in crimes_df2.columns:
+        combined_crimes[year] = crimes_df1.apply(
+            lambda row: compare_values(
+                row[year],
+                crimes_df2.loc[crimes_df2['Country'] == row['Country'], year].values[0]
+                if row['Country'] in crimes_df2['Country'].values else np.nan
+            ), axis=1
         )
-    )
+    elif year in crimes_df1.columns:
+        combined_crimes[year] = crimes_df1[year]
+    elif year in crimes_df2.columns:
+        combined_crimes[year] = crimes_df2[year]
+    else:
+        combined_crimes[year] = np.nan
 
-# Make the first trace visible
-fig.data[0].visible = True
+crimes_combined_df = pd.DataFrame(combined_crimes)
 
-# Create sliders
-steps = []
-for i, year in enumerate(years):
-    step = dict(
-        method='update',
-        args=[{'visible': [j == i for j in range(len(fig.data))]},
-              {'title': f'US Data for {year} - Death Rate'}],
-        label=str(year)
-    )
-    steps.append(step)
+# Function to calculate crimes per 1000 inhabitants
+inhabitants_df = inhabitants[['Country Name'] + years].copy()
+inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
 
-sliders = [dict(
-    active=0,
-    steps=steps,
-    x=0.02,  # Move the slider more to the left
-    xanchor='left',
-    y=0,
-    yanchor='top',
-    pad=dict(t=50)
-)]
+def calc_per_100_inhabitants(row, year):
+    if pd.isna(row[f'{year}']):
+        return np.nan
+    else:
+        return round(row[f'{year}'] / (inhabitants_df.at[row.name, f'{year}'] / 1000), 3)
 
-# Add the sliders to the figure
-fig.update_layout(
-    title_text=f'US Data for {years[0]} - Death Rate',
-    geo=dict(
-        scope='usa',
-        lakecolor='rgb(255, 255, 255)',
-        projection=dict(type='albers usa'),
-        showlakes=True,
-        subunitcolor="rgb(255, 255, 255)",
-    ),
-    margin=dict(l=50, r=50, t=50, b=50),
-    sliders=sliders,
-    height=800,  # Adjust the height as needed
+per_inhabitants_df = crimes_combined_df.copy()
+for year in years:
+    if year in crimes_combined_df.columns and year in inhabitants_df.columns:
+        per_inhabitants_df[year] = crimes_combined_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
+
+per_inhabitants_df.reset_index(drop=True, inplace=True)
+
+# Dropdown widgets for country selection, year selection, scale selection, and data selection
+country_dropdown = widgets.SelectMultiple(
+    options=crimes_combined_df['Country'].unique().tolist(),
+    value=['France', 'Spain'], 
+    description='Select countries (Portugal included):',
+    disabled=False,
 )
 
-# Show the interactive map
-fig.show()
+year_dropdown = widgets.SelectMultiple(
+    options=years,
+    value=['2021', '2017', '2012', '2007'],
+    description='Select years:',
+    disabled=False,
+)
+
+scale_dropdown = widgets.Dropdown(
+    options=['linear', 'log'],
+    value='log',
+    description='Select Scale:',
+    disabled=False,
+)
+
+data_dropdown = widgets.Dropdown(
+    options=['total', 'per_inhabitants'],
+    value='total',
+    description='Select unit:',
+    disabled=False,
+)
+
+# Create initial empty figure
+fig = go.FigureWidget()
+
+# Update function to handle widget changes
+def update_graph(change):
+    fig.data = []  # Clear existing traces
+    
+    selected_countries = country_dropdown.value
+    selected_years = year_dropdown.value
+    selected_scale = scale_dropdown.value
+    selected_data = data_dropdown.value
+
+    selected_countries = list(selected_countries) + ['Portugal']
+
+    # Choose the correct dataset based on the selected data type
+    filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else crimes_combined_df
+
+    # Filter the dataframe based on the selected countries and years
+    selected_countries_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
+    final_df = selected_countries_df.melt(id_vars=['Country'], value_vars=selected_years, var_name='Year', value_name='Cases')
+    
+    # Make sure Portugal is always the first country in the plots
+    country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
+
+    # Loop through each country to create bar plots and track missing data
+    for country in country_order:
+        country_data = final_df[final_df['Country'] == country]
+        fig.add_trace(go.Bar(
+            x=country_data[pd.notna(country_data['Cases'])]['Year'],
+            y=country_data[pd.notna(country_data['Cases'])]['Cases'],
+            name=country
+        ))
+
+    fig.update_layout(
+        paper_bgcolor='lightgrey',
+        plot_bgcolor='white', 
+        font=dict(color='black'),  
+        yaxis_type=selected_scale,
+        title= f"Amount of drug crimes per year for the selected years and countries ({selected_data})",
+        xaxis_title="Year", 
+        yaxis_title="Number of Crimes" if selected_data == 'total' else "Crimes per 1000 Inhabitants"
+    )
+
+# Register update function with widgets
+country_dropdown.observe(update_graph, names='value')
+year_dropdown.observe(update_graph, names='value')
+scale_dropdown.observe(update_graph, names='value')
+data_dropdown.observe(update_graph, names='value')
+
+# Display the initial plot and widgets
+update_graph(None)  # Initialize plot with default values
+widgets.VBox([fig, country_dropdown, year_dropdown, scale_dropdown, data_dropdown])
+
 ------------------
 
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mNameError[0m                                 Traceback (most recent call last)
-Cell [0;32mIn[5], line 25[0m
-[1;32m     22[0m years [38;5;241m=[39m [38;5;28msorted[39m(df[[38;5;124m'[39m[38;5;124mYEAR[39m[38;5;124m'[39m][38;5;241m.[39munique())
-[1;32m     24[0m [38;5;66;03m# Initialize the figure[39;00m
-[0;32m---> 25[0m fig [38;5;241m=[39m [43mgo[49m[38;5;241m.[39mFigure()
-[1;32m     27[0m [38;5;66;03m# Create a choropleth map for each year and add it to the figure[39;00m
-[1;32m     28[0m [38;5;28;01mfor[39;00m year [38;5;129;01min[39;00m years:
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+Cell [0;32mIn[1], line 217[0m
+[1;32m    215[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[1;32m    216[0m [38;5;28;01mimport[39;00m [38;5;21;01mplotly[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgraph_objects[39;00m [38;5;28;01mas[39;00m [38;5;21;01mgo[39;00m
+[0;32m--> 217[0m [38;5;28;01mimport[39;00m [38;5;21;01mipywidgets[39;00m [38;5;28;01mas[39;00m [38;5;21;01mwidgets[39;00m
+[1;32m    218[0m [38;5;28;01mfrom[39;00m [38;5;21;01mIPython[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdisplay[39;00m [38;5;28;01mimport[39;00m display
+[1;32m    220[0m [38;5;66;03m# Load datasets[39;00m
 
-[0;31mNameError[0m: name 'go' is not defined
+[0;31mModuleNotFoundError[0m: No module named 'ipywidgets'
 
