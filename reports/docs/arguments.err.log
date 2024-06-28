@@ -15,340 +15,102 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-! pip3 install dash
-! pip install dash
-
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
-import plotly.graph_objects as go
 import pandas as pd
-import numpy as np
+from pandas import *
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# import dash
+# from dash import dcc, html
+# from dash.dependencies import Input, Output
+# import plotly.express as px
 
-years = ['2021','2020','2019','2018','2017','2016','2015','2014','2013']
-# Laad de dataset
-treatment_df = pd.read_csv("Treatment.csv")
-inhabitants = pd.read_csv("Population_europe.csv")
-inhabitants_df = inhabitants[['Country Name'] + years].copy()
-inhabitants_df.rename(columns={'Country Name': 'Country'}, inplace=True)
+df = pd.read_csv("statesdata.csv")
+df.columns = df.columns.str.strip()
 
-# Functie om het aantal per 1000 inwoners te berekenen
-def calc_per_100_inhabitants(row, year):
-    if pd.isna(row[year]):
-        return np.nan
-    else:
-        return round(row[year] / (inhabitants_df.at[row.name, year] / 1000), 3)
+# Check for 'YEAR' column
+if 'YEAR' not in df.columns:
+    raise KeyError("The 'YEAR' column is missing or misspelled in the DataFrame.")
 
-# Maak een echte kopie van het treatment_df voor berekeningen per 1000 inwoners
-per_inhabitants_df = treatment_df.copy()
+# Calculate min and max values for RATE to set fixed color scale
+min_rate = df['RATE'].min()
+max_rate = df['RATE'].max()
 
-# Bereken het aantal per 1000 inwoners voor elk jaar
+# Sort years to ensure the slider goes from earliest to latest year
+years = sorted(df['YEAR'].unique())
+
+# Initialize the figure
+fig = go.Figure()
+
+# Create a choropleth map for each year and add it to the figure
 for year in years:
-    if year in treatment_df.columns and year in inhabitants_df.columns:
-        per_inhabitants_df[year] = treatment_df.apply(lambda row: calc_per_100_inhabitants(row, year), axis=1)
-
-per_inhabitants_df.reset_index(drop=True, inplace=True)
-
-app2 = dash.Dash(__name__)
-
-app2.layout = html.Div([
-    html.H1("Een hele mooie titel, die ga ik nog bedenken..."),
-
-    html.Label("Select countries (Portugal is always included):"),
-    dcc.Dropdown(
-        id='country-selector',
-        options=[{'label': i, 'value': i} for i in treatment_df['Country'].unique() if i != 'Portugal'],
-        value=['France', 'Spain'], 
-        multi=True
-    ),
-    html.Label("Select Scale:"),
-    dcc.Dropdown(
-        id='scale-selector',
-        options=[
-            {'label': 'Linear', 'value': 'linear'},
-            {'label': 'Logarithmic', 'value': 'log'}
-        ],
-        value='linear', 
-    ),
-    html.Label("Select Unit:"),
-    dcc.Dropdown(
-        id='data-selector',
-        options=[
-            {'label': 'Total amount of cases', 'value': 'total'},
-            {'label': 'Cases/1000 inhabitants', 'value': 'per_inhabitants'}
-        ],
-        value='total', 
-    ),
-    dcc.Graph(id='line-chart'),
-    html.Div(id='missing-data-warning', style={'color': 'red', 'margin-top': '20px'})
-], style={'backgroundColor': 'lightgrey', 'padding': '20px'})
-
-@app2.callback(
-    Output('line-chart', 'figure'),
-    [Input('country-selector', 'value'),
-     Input('scale-selector', 'value'),
-     Input('data-selector', 'value')]
-)
-def update_chart(selected_countries, selected_scale, selected_data):
-    selected_countries.append('Portugal')  # Zorg ervoor dat Portugal altijd wordt toegevoegd
-
-    # Kies de juiste dataset op basis van het geselecteerde data type
-    filtered_df = per_inhabitants_df if selected_data == 'per_inhabitants' else treatment_df
-
-    # Filter de dataframe op basis van de geselecteerde landen
-    selected_countries_df = filtered_df[filtered_df['Country'].isin(selected_countries)].copy()
-    final_df = selected_countries_df.melt(id_vars=['Country'], value_vars=years, var_name='Year', value_name='Cases')
-
-    country_order = ['Portugal'] + sorted([c for c in selected_countries if c != 'Portugal'])
-    
-    # Maak de figuur
-    fig = go.Figure()
-
-    for country in country_order:
-        country_data = final_df[final_df['Country'] == country]
-        fig.add_trace(go.Scatter(
-            x=country_data['Year'],
-            y=country_data['Cases'],
-            mode='lines+markers',
-            name=country
-        ))
-
-    fig.update_layout(
-        title="Drug treatment demand",
-        xaxis_title="Year",
-        yaxis_title="Number of Cases" if selected_data == 'total' else "Cases per 1000 Inhabitants",
-        yaxis_type=selected_scale
+    filtered_df = df[df['YEAR'] == year]
+    fig.add_trace(
+        go.Choropleth(
+            locations=filtered_df['STATE'],
+            z=filtered_df['RATE'],
+            locationmode='USA-states',
+            colorscale='Turbo',
+            zmin=min_rate,
+            zmax=max_rate,
+            hovertext=filtered_df['STATE'],
+            hoverinfo='location+z+text',
+            visible=False,
+            name=str(year)
+        )
     )
 
-    return fig
+# Make the first trace visible
+fig.data[0].visible = True
 
-if __name__ == '__main__':
-    app2.run_server(debug=True, port=8055)
+# Create sliders
+steps = []
+for i, year in enumerate(years):
+    step = dict(
+        method='update',
+        args=[{'visible': [j == i for j in range(len(fig.data))]},
+              {'title': f'US Data for {year} - Death Rate'}],
+        label=str(year)
+    )
+    steps.append(step)
+
+sliders = [dict(
+    active=0,
+    steps=steps,
+    x=0.02,  # Move the slider more to the left
+    xanchor='left',
+    y=0,
+    yanchor='top',
+    pad=dict(t=50)
+)]
+
+# Add the sliders to the figure
+fig.update_layout(
+    title_text=f'US Data for {years[0]} - Death Rate',
+    geo=dict(
+        scope='usa',
+        lakecolor='rgb(255, 255, 255)',
+        projection=dict(type='albers usa'),
+        showlakes=True,
+        subunitcolor="rgb(255, 255, 255)",
+    ),
+    margin=dict(l=50, r=50, t=50, b=50),
+    sliders=sliders,
+    height=800,  # Adjust the height as needed
+)
+
+# Show the interactive map
+fig.show()
 ------------------
 
------ stdout -----
-Requirement already satisfied: dash in /usr/local/lib/python3.11/site-packages (2.17.1)
------ stdout -----
-Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
-Requirement already satisfied: Werkzeug<3.1 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
-Requirement already satisfied: plotly>=5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.22.0)
-Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-table==5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.0.0)
-Requirement already satisfied: importlib-metadata in /usr/local/lib/python3.11/site-packages (from dash) (7.2.0)
-Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/lib/python3.11/site-packages (from dash) (4.12.2)
-Requirement already satisfied: requests in /usr/local/lib/python3.11/site-packages (from dash) (2.31.0)
-Requirement already satisfied: retrying in /usr/local/lib/python3.11/site-packages (from dash) (1.3.4)
-Requirement already satisfied: nest-asyncio in /usr/local/lib/python3.11/site-packages (from dash) (1.6.0)
-Requirement already satisfied: setuptools in /usr/local/lib/python3.11/site-packages (from dash) (69.0.2)
-Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.3)
-Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
-Requirement already satisfied: click>=8.1.3 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
-Requirement already satisfied: blinker>=1.6.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
-Requirement already satisfied: tenacity>=6.2.0 in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (8.3.0)
-Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (23.2)
-Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/lib/python3.11/site-packages (from Werkzeug<3.1->dash) (2.1.5)
-Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.11/site-packages (from importlib-metadata->dash) (3.19.2)
-Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.3.2)
------ stdout -----
-Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.6)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2.2.1)
-Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2024.2.2)
-Requirement already satisfied: six>=1.7.0 in /usr/local/lib/python3.11/site-packages (from retrying->dash) (1.16.0)
------ stdout -----
-
-[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.3.1[0m[39;49m -> [0m[32;49m24.1[0m
-[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49m/usr/local/opt/python@3.11/bin/python3.11 -m pip install --upgrade pip[0m
------ stdout -----
-Requirement already satisfied: dash in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (2.17.1)
------ stdout -----
-Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
-Requirement already satisfied: Werkzeug<3.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
-Requirement already satisfied: plotly>=5.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (5.22.0)
-Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
-Requirement already satisfied: dash-table==5.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (5.0.0)
-Requirement already satisfied: importlib-metadata in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (7.1.0)
-Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (4.12.1)
-Requirement already satisfied: requests in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.32.3)
-Requirement already satisfied: retrying in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.3.4)
-Requirement already satisfied: nest-asyncio in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.6.0)
-Requirement already satisfied: setuptools in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (69.5.1)
-Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.4)
-Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
-Requirement already satisfied: click>=8.1.3 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
-Requirement already satisfied: blinker>=1.6.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
-Requirement already satisfied: tenacity>=6.2.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (8.3.0)
-Requirement already satisfied: packaging in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (24.0)
-Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Werkzeug<3.1->dash) (2.1.5)
-Requirement already satisfied: zipp>=0.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from importlib-metadata->dash) (3.17.0)
------ stdout -----
-Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.3.2)
-Requirement already satisfied: idna<4,>=2.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.7)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2.2.1)
-Requirement already satisfied: certifi>=2017.4.17 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2024.2.2)
-Requirement already satisfied: six>=1.7.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from retrying->dash) (1.16.0)
------ stderr -----
-Address already in use
-Port 8055 is in use by another program. Either identify and stop that program, or start the server with a different port.
-------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mOSError[0m                                   Traceback (most recent call last)
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:750[0m, in [0;36mBaseWSGIServer.__init__[0;34m(self, host, port, app, handler, passthrough_errors, ssl_context, fd)[0m
-[1;32m    749[0m [38;5;28;01mtry[39;00m:
-[0;32m--> 750[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mserver_bind[49m[43m([49m[43m)[49m
-[1;32m    751[0m     [38;5;28mself[39m[38;5;241m.[39mserver_activate()
+[0;31mNameError[0m                                 Traceback (most recent call last)
+Cell [0;32mIn[5], line 25[0m
+[1;32m     22[0m years [38;5;241m=[39m [38;5;28msorted[39m(df[[38;5;124m'[39m[38;5;124mYEAR[39m[38;5;124m'[39m][38;5;241m.[39munique())
+[1;32m     24[0m [38;5;66;03m# Initialize the figure[39;00m
+[0;32m---> 25[0m fig [38;5;241m=[39m [43mgo[49m[38;5;241m.[39mFigure()
+[1;32m     27[0m [38;5;66;03m# Create a choropleth map for each year and add it to the figure[39;00m
+[1;32m     28[0m [38;5;28;01mfor[39;00m year [38;5;129;01min[39;00m years:
 
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/http/server.py:137[0m, in [0;36mHTTPServer.server_bind[0;34m(self)[0m
-[1;32m    136[0m [38;5;250m[39m[38;5;124;03m"""Override server_bind to store the server name."""[39;00m
-[0;32m--> 137[0m [43msocketserver[49m[38;5;241;43m.[39;49m[43mTCPServer[49m[38;5;241;43m.[39;49m[43mserver_bind[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m
-[1;32m    138[0m host, port [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mserver_address[:[38;5;241m2[39m]
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/socketserver.py:466[0m, in [0;36mTCPServer.server_bind[0;34m(self)[0m
-[1;32m    465[0m     [38;5;28mself[39m[38;5;241m.[39msocket[38;5;241m.[39msetsockopt(socket[38;5;241m.[39mSOL_SOCKET, socket[38;5;241m.[39mSO_REUSEADDR, [38;5;241m1[39m)
-[0;32m--> 466[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43msocket[49m[38;5;241;43m.[39;49m[43mbind[49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mserver_address[49m[43m)[49m
-[1;32m    467[0m [38;5;28mself[39m[38;5;241m.[39mserver_address [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39msocket[38;5;241m.[39mgetsockname()
-
-[0;31mOSError[0m: [Errno 48] Address already in use
-
-During handling of the above exception, another exception occurred:
-
-[0;31mSystemExit[0m                                Traceback (most recent call last)
-    [0;31m[... skipping hidden 1 frame][0m
-
-Cell [0;32mIn[6], line 109[0m
-[1;32m    108[0m [38;5;28;01mif[39;00m [38;5;18m__name__[39m [38;5;241m==[39m [38;5;124m'[39m[38;5;124m__main__[39m[38;5;124m'[39m:
-[0;32m--> 109[0m     [43mapp2[49m[38;5;241;43m.[39;49m[43mrun_server[49m[43m([49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mport[49m[38;5;241;43m=[39;49m[38;5;241;43m8055[39;49m[43m)[49m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2277[0m, in [0;36mDash.run_server[0;34m(self, *args, **kwargs)[0m
-[1;32m   2272[0m [38;5;250m[39m[38;5;124;03m"""`run_server` is a deprecated alias of `run` and may be removed in a[39;00m
-[1;32m   2273[0m [38;5;124;03mfuture version. We recommend using `app.run` instead.[39;00m
-[1;32m   2274[0m 
-[1;32m   2275[0m [38;5;124;03mSee `app.run` for usage information.[39;00m
-[1;32m   2276[0m [38;5;124;03m"""[39;00m
-[0;32m-> 2277[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mrun[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2168[0m, in [0;36mDash.run[0;34m(self, host, port, proxy, debug, jupyter_mode, jupyter_width, jupyter_height, jupyter_server_url, dev_tools_ui, dev_tools_props_check, dev_tools_serve_dev_bundles, dev_tools_hot_reload, dev_tools_hot_reload_interval, dev_tools_hot_reload_watch_interval, dev_tools_hot_reload_max_retry, dev_tools_silence_routes_logging, dev_tools_prune_errors, **flask_run_options)[0m
-[1;32m   2167[0m [38;5;28;01mif[39;00m jupyter_dash[38;5;241m.[39mactive:
-[0;32m-> 2168[0m     [43mjupyter_dash[49m[38;5;241;43m.[39;49m[43mrun_app[49m[43m([49m
-[1;32m   2169[0m [43m        [49m[38;5;28;43mself[39;49m[43m,[49m
-[1;32m   2170[0m [43m        [49m[43mmode[49m[38;5;241;43m=[39;49m[43mjupyter_mode[49m[43m,[49m
-[1;32m   2171[0m [43m        [49m[43mwidth[49m[38;5;241;43m=[39;49m[43mjupyter_width[49m[43m,[49m
-[1;32m   2172[0m [43m        [49m[43mheight[49m[38;5;241;43m=[39;49m[43mjupyter_height[49m[43m,[49m
-[1;32m   2173[0m [43m        [49m[43mhost[49m[38;5;241;43m=[39;49m[43mhost[49m[43m,[49m
-[1;32m   2174[0m [43m        [49m[43mport[49m[38;5;241;43m=[39;49m[43mport[49m[43m,[49m
-[1;32m   2175[0m [43m        [49m[43mserver_url[49m[38;5;241;43m=[39;49m[43mjupyter_server_url[49m[43m,[49m
-[1;32m   2176[0m [43m    [49m[43m)[49m
-[1;32m   2177[0m [38;5;28;01melse[39;00m:
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/_jupyter.py:332[0m, in [0;36mJupyterDash.run_app[0;34m(self, app, mode, width, height, host, port, server_url)[0m
-[1;32m    330[0m err_q [38;5;241m=[39m queue[38;5;241m.[39mQueue()
-[0;32m--> 332[0m server [38;5;241m=[39m [43mmake_server[49m[43m([49m[43mhost[49m[43m,[49m[43m [49m[43mport[49m[43m,[49m[43m [49m[43mapp[49m[38;5;241;43m.[39;49m[43mserver[49m[43m,[49m[43m [49m[43mthreaded[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mprocesses[49m[38;5;241;43m=[39;49m[38;5;241;43m0[39;49m[43m)[49m
-[1;32m    333[0m logging[38;5;241m.[39mgetLogger([38;5;124m"[39m[38;5;124mwerkzeug[39m[38;5;124m"[39m)[38;5;241m.[39msetLevel(logging[38;5;241m.[39mERROR)
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:921[0m, in [0;36mmake_server[0;34m(host, port, app, threaded, processes, request_handler, passthrough_errors, ssl_context, fd)[0m
-[1;32m    920[0m [38;5;28;01mif[39;00m threaded:
-[0;32m--> 921[0m     [38;5;28;01mreturn[39;00m [43mThreadedWSGIServer[49m[43m([49m
-[1;32m    922[0m [43m        [49m[43mhost[49m[43m,[49m[43m [49m[43mport[49m[43m,[49m[43m [49m[43mapp[49m[43m,[49m[43m [49m[43mrequest_handler[49m[43m,[49m[43m [49m[43mpassthrough_errors[49m[43m,[49m[43m [49m[43mssl_context[49m[43m,[49m[43m [49m[43mfd[49m[38;5;241;43m=[39;49m[43mfd[49m
-[1;32m    923[0m [43m    [49m[43m)[49m
-[1;32m    925[0m [38;5;28;01mif[39;00m processes [38;5;241m>[39m [38;5;241m1[39m:
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:773[0m, in [0;36mBaseWSGIServer.__init__[0;34m(self, host, port, app, handler, passthrough_errors, ssl_context, fd)[0m
-[1;32m    767[0m             [38;5;28mprint[39m(
-[1;32m    768[0m                 [38;5;124m"[39m[38;5;124mOn macOS, try disabling the [39m[38;5;124m'[39m[38;5;124mAirPlay Receiver[39m[38;5;124m'[39m[38;5;124m service[39m[38;5;124m"[39m
-[1;32m    769[0m                 [38;5;124m"[39m[38;5;124m from System Preferences -> General -> AirDrop & Handoff.[39m[38;5;124m"[39m,
-[1;32m    770[0m                 file[38;5;241m=[39msys[38;5;241m.[39mstderr,
-[1;32m    771[0m             )
-[0;32m--> 773[0m     [43msys[49m[38;5;241;43m.[39;49m[43mexit[49m[43m([49m[38;5;241;43m1[39;49m[43m)[49m
-[1;32m    774[0m [38;5;28;01mexcept[39;00m [38;5;167;01mBaseException[39;00m:
-
-[0;31mSystemExit[0m: 1
-
-During handling of the above exception, another exception occurred:
-
-[0;31mAttributeError[0m                            Traceback (most recent call last)
-    [0;31m[... skipping hidden 1 frame][0m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/interactiveshell.py:2145[0m, in [0;36mInteractiveShell.showtraceback[0;34m(self, exc_tuple, filename, tb_offset, exception_only, running_compiled_code)[0m
-[1;32m   2142[0m [38;5;28;01mif[39;00m exception_only:
-[1;32m   2143[0m     stb [38;5;241m=[39m [[38;5;124m'[39m[38;5;124mAn exception has occurred, use [39m[38;5;124m%[39m[38;5;124mtb to see [39m[38;5;124m'[39m
-[1;32m   2144[0m            [38;5;124m'[39m[38;5;124mthe full traceback.[39m[38;5;130;01m\n[39;00m[38;5;124m'[39m]
-[0;32m-> 2145[0m     stb[38;5;241m.[39mextend([38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mInteractiveTB[49m[38;5;241;43m.[39;49m[43mget_exception_only[49m[43m([49m[43metype[49m[43m,[49m
-[1;32m   2146[0m [43m                                                     [49m[43mvalue[49m[43m)[49m)
-[1;32m   2147[0m [38;5;28;01melse[39;00m:
-[1;32m   2149[0m     [38;5;28;01mdef[39;00m [38;5;21mcontains_exceptiongroup[39m(val):
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:710[0m, in [0;36mListTB.get_exception_only[0;34m(self, etype, value)[0m
-[1;32m    702[0m [38;5;28;01mdef[39;00m [38;5;21mget_exception_only[39m([38;5;28mself[39m, etype, value):
-[1;32m    703[0m [38;5;250m    [39m[38;5;124;03m"""Only print the exception type and message, without a traceback.[39;00m
-[1;32m    704[0m 
-[1;32m    705[0m [38;5;124;03m    Parameters[39;00m
-[0;32m   (...)[0m
-[1;32m    708[0m [38;5;124;03m    value : exception value[39;00m
-[1;32m    709[0m [38;5;124;03m    """[39;00m
-[0;32m--> 710[0m     [38;5;28;01mreturn[39;00m [43mListTB[49m[38;5;241;43m.[39;49m[43mstructured_traceback[49m[43m([49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43metype[49m[43m,[49m[43m [49m[43mvalue[49m[43m)[49m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:568[0m, in [0;36mListTB.structured_traceback[0;34m(self, etype, evalue, etb, tb_offset, context)[0m
-[1;32m    565[0m     chained_exc_ids[38;5;241m.[39madd([38;5;28mid[39m(exception[[38;5;241m1[39m]))
-[1;32m    566[0m     chained_exceptions_tb_offset [38;5;241m=[39m [38;5;241m0[39m
-[1;32m    567[0m     out_list [38;5;241m=[39m (
-[0;32m--> 568[0m         [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mstructured_traceback[49m[43m([49m
-[1;32m    569[0m [43m            [49m[43metype[49m[43m,[49m
-[1;32m    570[0m [43m            [49m[43mevalue[49m[43m,[49m
-[1;32m    571[0m [43m            [49m[43m([49m[43metb[49m[43m,[49m[43m [49m[43mchained_exc_ids[49m[43m)[49m[43m,[49m[43m  [49m[38;5;66;43;03m# type: ignore[39;49;00m
-[1;32m    572[0m [43m            [49m[43mchained_exceptions_tb_offset[49m[43m,[49m
-[1;32m    573[0m [43m            [49m[43mcontext[49m[43m,[49m
-[1;32m    574[0m [43m        [49m[43m)[49m
-[1;32m    575[0m         [38;5;241m+[39m chained_exception_message
-[1;32m    576[0m         [38;5;241m+[39m out_list)
-[1;32m    578[0m [38;5;28;01mreturn[39;00m out_list
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1454[0m, in [0;36mAutoFormattedTB.structured_traceback[0;34m(self, etype, evalue, etb, tb_offset, number_of_lines_of_context)[0m
-[1;32m   1452[0m [38;5;28;01melse[39;00m:
-[1;32m   1453[0m     [38;5;28mself[39m[38;5;241m.[39mtb [38;5;241m=[39m etb
-[0;32m-> 1454[0m [38;5;28;01mreturn[39;00m [43mFormattedTB[49m[38;5;241;43m.[39;49m[43mstructured_traceback[49m[43m([49m
-[1;32m   1455[0m [43m    [49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43metype[49m[43m,[49m[43m [49m[43mevalue[49m[43m,[49m[43m [49m[43metb[49m[43m,[49m[43m [49m[43mtb_offset[49m[43m,[49m[43m [49m[43mnumber_of_lines_of_context[49m
-[1;32m   1456[0m [43m[49m[43m)[49m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1345[0m, in [0;36mFormattedTB.structured_traceback[0;34m(self, etype, value, tb, tb_offset, number_of_lines_of_context)[0m
-[1;32m   1342[0m mode [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mmode
-[1;32m   1343[0m [38;5;28;01mif[39;00m mode [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mverbose_modes:
-[1;32m   1344[0m     [38;5;66;03m# Verbose modes need a full traceback[39;00m
-[0;32m-> 1345[0m     [38;5;28;01mreturn[39;00m [43mVerboseTB[49m[38;5;241;43m.[39;49m[43mstructured_traceback[49m[43m([49m
-[1;32m   1346[0m [43m        [49m[38;5;28;43mself[39;49m[43m,[49m[43m [49m[43metype[49m[43m,[49m[43m [49m[43mvalue[49m[43m,[49m[43m [49m[43mtb[49m[43m,[49m[43m [49m[43mtb_offset[49m[43m,[49m[43m [49m[43mnumber_of_lines_of_context[49m
-[1;32m   1347[0m [43m    [49m[43m)[49m
-[1;32m   1348[0m [38;5;28;01melif[39;00m mode [38;5;241m==[39m [38;5;124m'[39m[38;5;124mMinimal[39m[38;5;124m'[39m:
-[1;32m   1349[0m     [38;5;28;01mreturn[39;00m ListTB[38;5;241m.[39mget_exception_only([38;5;28mself[39m, etype, value)
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1192[0m, in [0;36mVerboseTB.structured_traceback[0;34m(self, etype, evalue, etb, tb_offset, number_of_lines_of_context)[0m
-[1;32m   1183[0m [38;5;28;01mdef[39;00m [38;5;21mstructured_traceback[39m(
-[1;32m   1184[0m     [38;5;28mself[39m,
-[1;32m   1185[0m     etype: [38;5;28mtype[39m,
-[0;32m   (...)[0m
-[1;32m   1189[0m     number_of_lines_of_context: [38;5;28mint[39m [38;5;241m=[39m [38;5;241m5[39m,
-[1;32m   1190[0m ):
-[1;32m   1191[0m [38;5;250m    [39m[38;5;124;03m"""Return a nice text document describing the traceback."""[39;00m
-[0;32m-> 1192[0m     formatted_exception [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mformat_exception_as_a_whole[49m[43m([49m[43metype[49m[43m,[49m[43m [49m[43mevalue[49m[43m,[49m[43m [49m[43metb[49m[43m,[49m[43m [49m[43mnumber_of_lines_of_context[49m[43m,[49m
-[1;32m   1193[0m [43m                                                           [49m[43mtb_offset[49m[43m)[49m
-[1;32m   1195[0m     colors [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mColors  [38;5;66;03m# just a shorthand + quicker name lookup[39;00m
-[1;32m   1196[0m     colorsnormal [38;5;241m=[39m colors[38;5;241m.[39mNormal  [38;5;66;03m# used a lot[39;00m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1082[0m, in [0;36mVerboseTB.format_exception_as_a_whole[0;34m(self, etype, evalue, etb, number_of_lines_of_context, tb_offset)[0m
-[1;32m   1079[0m [38;5;28;01massert[39;00m [38;5;28misinstance[39m(tb_offset, [38;5;28mint[39m)
-[1;32m   1080[0m head [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mprepare_header([38;5;28mstr[39m(etype), [38;5;28mself[39m[38;5;241m.[39mlong_header)
-[1;32m   1081[0m records [38;5;241m=[39m (
-[0;32m-> 1082[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mget_records[49m[43m([49m[43metb[49m[43m,[49m[43m [49m[43mnumber_of_lines_of_context[49m[43m,[49m[43m [49m[43mtb_offset[49m[43m)[49m [38;5;28;01mif[39;00m etb [38;5;28;01melse[39;00m []
-[1;32m   1083[0m )
-[1;32m   1085[0m frames [38;5;241m=[39m []
-[1;32m   1086[0m skipped [38;5;241m=[39m [38;5;241m0[39m
-
-File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1150[0m, in [0;36mVerboseTB.get_records[0;34m(self, etb, number_of_lines_of_context, tb_offset)[0m
-[1;32m   1148[0m [38;5;28;01mwhile[39;00m cf [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
-[1;32m   1149[0m     [38;5;28;01mtry[39;00m:
-[0;32m-> 1150[0m         mod [38;5;241m=[39m inspect[38;5;241m.[39mgetmodule([43mcf[49m[38;5;241;43m.[39;49m[43mtb_frame[49m)
-[1;32m   1151[0m         [38;5;28;01mif[39;00m mod [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
-[1;32m   1152[0m             mod_name [38;5;241m=[39m mod[38;5;241m.[39m[38;5;18m__name__[39m
-
-[0;31mAttributeError[0m: 'tuple' object has no attribute 'tb_frame'
+[0;31mNameError[0m: name 'go' is not defined
 
