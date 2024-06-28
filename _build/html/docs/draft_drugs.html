@@ -752,217 +752,51 @@ The variables in this dataset are: ‘Region’, ‘SubRegion’, ‘Country/Ter
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash</span>
-<span class="kn">from</span> <span class="nn">dash</span> <span class="kn">import</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span>
-<span class="kn">from</span> <span class="nn">dash.dependencies</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span>
-<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># import dash</span>
+<span class="c1"># from dash import dcc, html</span>
+<span class="c1"># from dash.dependencies import Input, Output</span>
+<span class="c1"># import plotly.graph_objects as go</span>
+<span class="c1"># import pandas as pd</span>
 
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;Treatment.csv&quot;</span><span class="p">)</span>
-<span class="n">df_transposed</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;Country&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+<span class="c1"># df = pd.read_csv(&quot;Treatment.csv&quot;)</span>
+<span class="c1"># df_transposed = df.set_index(&#39;Country&#39;).transpose()</span>
 
-<span class="n">app1</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="c1"># app1 = dash.Dash(__name__)</span>
 
-<span class="n">app1</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
-    <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
-        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;country-select&#39;</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">country</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">country</span><span class="p">}</span> <span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Country&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()],</span>
-        <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Portugal&#39;</span><span class="p">],</span> 
-        <span class="n">multi</span><span class="o">=</span><span class="kc">True</span>  
-    <span class="p">),</span>
-    <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;line-chart&#39;</span><span class="p">)</span>
-<span class="p">])</span>
+<span class="c1"># app1.layout = html.Div([</span>
+<span class="c1">#     dcc.Dropdown(</span>
+<span class="c1">#         id=&#39;country-select&#39;,</span>
+<span class="c1">#         options=[{&#39;label&#39;: country, &#39;value&#39;: country} for country in df[&#39;Country&#39;].unique()],</span>
+<span class="c1">#         value=[&#39;Portugal&#39;], </span>
+<span class="c1">#         multi=True  </span>
+<span class="c1">#     ),</span>
+<span class="c1">#     dcc.Graph(id=&#39;line-chart&#39;)</span>
+<span class="c1"># ])</span>
 
-<span class="nd">@app1</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
-    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;line-chart&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
-    <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s1">&#39;country-select&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)]</span>
-<span class="p">)</span>
-<span class="k">def</span> <span class="nf">update_chart</span><span class="p">(</span><span class="n">selected_countries</span><span class="p">):</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">selected_countries</span><span class="p">:</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="n">df_transposed</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> 
-            <span class="n">y</span><span class="o">=</span><span class="n">df_transposed</span><span class="p">[</span><span class="n">country</span><span class="p">],</span> 
-            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines+markers&#39;</span><span class="p">,</span> 
-            <span class="n">name</span><span class="o">=</span><span class="n">country</span>
-        <span class="p">))</span>
+<span class="c1"># @app1.callback(</span>
+<span class="c1">#     Output(&#39;line-chart&#39;, &#39;figure&#39;),</span>
+<span class="c1">#     [Input(&#39;country-select&#39;, &#39;value&#39;)]</span>
+<span class="c1"># )</span>
+<span class="c1"># def update_chart(selected_countries):</span>
+<span class="c1">#     fig = go.Figure()</span>
+<span class="c1">#     for country in selected_countries:</span>
+<span class="c1">#         fig.add_trace(go.Scatter(</span>
+<span class="c1">#             x=df_transposed.index, </span>
+<span class="c1">#             y=df_transposed[country], </span>
+<span class="c1">#             mode=&#39;lines+markers&#39;, </span>
+<span class="c1">#             name=country</span>
+<span class="c1">#         ))</span>
 
-    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
-        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Data from 2013 to 2021&quot;</span><span class="p">,</span>
-        <span class="n">xaxis_title</span><span class="o">=</span><span class="s2">&quot;Year&quot;</span><span class="p">,</span>
-        <span class="n">yaxis_title</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span>
-    <span class="p">)</span>
+<span class="c1">#     fig.update_layout(</span>
+<span class="c1">#         title=&quot;Data from 2013 to 2021&quot;,</span>
+<span class="c1">#         xaxis_title=&quot;Year&quot;,</span>
+<span class="c1">#         yaxis_title=&quot;Value&quot;</span>
+<span class="c1">#     )</span>
     
-    <span class="k">return</span> <span class="n">fig</span>
+<span class="c1">#     return fig</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">app1</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8053</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Address already in use
-Port 8053 is in use by another program. Either identify and stop that program, or start the server with a different port.
-</pre></div>
-</div>
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">OSError</span><span class="g g-Whitespace">                                   </span>Traceback (most recent call last)
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:750,</span> in <span class="ni">BaseWSGIServer.__init__</span><span class="nt">(self, host, port, app, handler, passthrough_errors, ssl_context, fd)</span>
-<span class="g g-Whitespace">    </span><span class="mi">749</span> <span class="k">try</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">750</span>     <span class="bp">self</span><span class="o">.</span><span class="n">server_bind</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">751</span>     <span class="bp">self</span><span class="o">.</span><span class="n">server_activate</span><span class="p">()</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/http/server.py:137,</span> in <span class="ni">HTTPServer.server_bind</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">136</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;Override server_bind to store the server name.&quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">137</span> <span class="n">socketserver</span><span class="o">.</span><span class="n">TCPServer</span><span class="o">.</span><span class="n">server_bind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">138</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_address</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/socketserver.py:466,</span> in <span class="ni">TCPServer.server_bind</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">465</span>     <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">466</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_address</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">467</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()</span>
-
-<span class="ne">OSError</span>: [Errno 48] Address already in use
-
-<span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
-
-<span class="ne">SystemExit</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
-    <span class="p">[</span><span class="o">...</span> <span class="n">skipping</span> <span class="n">hidden</span> <span class="mi">1</span> <span class="n">frame</span><span class="p">]</span>
-
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span> <span class="mi">45</span>
-<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-<span class="ne">---&gt; </span><span class="mi">45</span>     <span class="n">app1</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8053</span><span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2277,</span> in <span class="ni">Dash.run_server</span><span class="nt">(self, *args, **kwargs)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2272</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;`run_server` is a deprecated alias of `run` and may be removed in a</span>
-<span class="g g-Whitespace">   </span><span class="mi">2273</span><span class="sd"> future version. We recommend using `app.run` instead.</span>
-<span class="g g-Whitespace">   </span><span class="mi">2274</span><span class="sd"> </span>
-<span class="g g-Whitespace">   </span><span class="mi">2275</span><span class="sd"> See `app.run` for usage information.</span>
-<span class="g g-Whitespace">   </span><span class="mi">2276</span><span class="sd"> &quot;&quot;&quot;</span>
-<span class="ne">-&gt; </span><span class="mi">2277</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2168,</span> in <span class="ni">Dash.run</span><span class="nt">(self, host, port, proxy, debug, jupyter_mode, jupyter_width, jupyter_height, jupyter_server_url, dev_tools_ui, dev_tools_props_check, dev_tools_serve_dev_bundles, dev_tools_hot_reload, dev_tools_hot_reload_interval, dev_tools_hot_reload_watch_interval, dev_tools_hot_reload_max_retry, dev_tools_silence_routes_logging, dev_tools_prune_errors, **flask_run_options)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2167</span> <span class="k">if</span> <span class="n">jupyter_dash</span><span class="o">.</span><span class="n">active</span><span class="p">:</span>
-<span class="ne">-&gt; </span><span class="mi">2168</span>     <span class="n">jupyter_dash</span><span class="o">.</span><span class="n">run_app</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">2169</span>         <span class="bp">self</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2170</span>         <span class="n">mode</span><span class="o">=</span><span class="n">jupyter_mode</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2171</span>         <span class="n">width</span><span class="o">=</span><span class="n">jupyter_width</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2172</span>         <span class="n">height</span><span class="o">=</span><span class="n">jupyter_height</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2173</span>         <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2174</span>         <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2175</span>         <span class="n">server_url</span><span class="o">=</span><span class="n">jupyter_server_url</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2176</span>     <span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2177</span> <span class="k">else</span><span class="p">:</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/_jupyter.py:332,</span> in <span class="ni">JupyterDash.run_app</span><span class="nt">(self, app, mode, width, height, host, port, server_url)</span>
-<span class="g g-Whitespace">    </span><span class="mi">330</span> <span class="n">err_q</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-<span class="ne">--&gt; </span><span class="mi">332</span> <span class="n">server</span> <span class="o">=</span> <span class="n">make_server</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">333</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;werkzeug&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:921,</span> in <span class="ni">make_server</span><span class="nt">(host, port, app, threaded, processes, request_handler, passthrough_errors, ssl_context, fd)</span>
-<span class="g g-Whitespace">    </span><span class="mi">920</span> <span class="k">if</span> <span class="n">threaded</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">921</span>     <span class="k">return</span> <span class="n">ThreadedWSGIServer</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">922</span>         <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">request_handler</span><span class="p">,</span> <span class="n">passthrough_errors</span><span class="p">,</span> <span class="n">ssl_context</span><span class="p">,</span> <span class="n">fd</span><span class="o">=</span><span class="n">fd</span>
-<span class="g g-Whitespace">    </span><span class="mi">923</span>     <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">925</span> <span class="k">if</span> <span class="n">processes</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/werkzeug/serving.py:773,</span> in <span class="ni">BaseWSGIServer.__init__</span><span class="nt">(self, host, port, app, handler, passthrough_errors, ssl_context, fd)</span>
-<span class="g g-Whitespace">    </span><span class="mi">767</span>             <span class="nb">print</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">768</span>                 <span class="s2">&quot;On macOS, try disabling the &#39;AirPlay Receiver&#39; service&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">769</span>                 <span class="s2">&quot; from System Preferences -&gt; General -&gt; AirDrop &amp; Handoff.&quot;</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">770</span>                 <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">771</span>             <span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">773</span>     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">774</span> <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-
-<span class="ne">SystemExit</span>: 1
-
-<span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
-
-<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
-    <span class="p">[</span><span class="o">...</span> <span class="n">skipping</span> <span class="n">hidden</span> <span class="mi">1</span> <span class="n">frame</span><span class="p">]</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/interactiveshell.py:2145,</span> in <span class="ni">InteractiveShell.showtraceback</span><span class="nt">(self, exc_tuple, filename, tb_offset, exception_only, running_compiled_code)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2142</span> <span class="k">if</span> <span class="n">exception_only</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">2143</span>     <span class="n">stb</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;An exception has occurred, use %tb to see &#39;</span>
-<span class="g g-Whitespace">   </span><span class="mi">2144</span>            <span class="s1">&#39;the full traceback.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span>
-<span class="ne">-&gt; </span><span class="mi">2145</span>     <span class="n">stb</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">InteractiveTB</span><span class="o">.</span><span class="n">get_exception_only</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">2146</span>                                                      <span class="n">value</span><span class="p">))</span>
-<span class="g g-Whitespace">   </span><span class="mi">2147</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">2149</span>     <span class="k">def</span> <span class="nf">contains_exceptiongroup</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:710,</span> in <span class="ni">ListTB.get_exception_only</span><span class="nt">(self, etype, value)</span>
-<span class="g g-Whitespace">    </span><span class="mi">702</span> <span class="k">def</span> <span class="nf">get_exception_only</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">703</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;Only print the exception type and message, without a traceback.</span>
-<span class="g g-Whitespace">    </span><span class="mi">704</span><span class="sd"> </span>
-<span class="g g-Whitespace">    </span><span class="mi">705</span><span class="sd">     Parameters</span>
-<span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">708</span><span class="sd">     value : exception value</span>
-<span class="g g-Whitespace">    </span><span class="mi">709</span><span class="sd">     &quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">710</span>     <span class="k">return</span> <span class="n">ListTB</span><span class="o">.</span><span class="n">structured_traceback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:568,</span> in <span class="ni">ListTB.structured_traceback</span><span class="nt">(self, etype, evalue, etb, tb_offset, context)</span>
-<span class="g g-Whitespace">    </span><span class="mi">565</span>     <span class="n">chained_exc_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">exception</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-<span class="g g-Whitespace">    </span><span class="mi">566</span>     <span class="n">chained_exceptions_tb_offset</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="g g-Whitespace">    </span><span class="mi">567</span>     <span class="n">out_list</span> <span class="o">=</span> <span class="p">(</span>
-<span class="ne">--&gt; </span><span class="mi">568</span>         <span class="bp">self</span><span class="o">.</span><span class="n">structured_traceback</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">569</span>             <span class="n">etype</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">570</span>             <span class="n">evalue</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">571</span>             <span class="p">(</span><span class="n">etb</span><span class="p">,</span> <span class="n">chained_exc_ids</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
-<span class="g g-Whitespace">    </span><span class="mi">572</span>             <span class="n">chained_exceptions_tb_offset</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">573</span>             <span class="n">context</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">574</span>         <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">575</span>         <span class="o">+</span> <span class="n">chained_exception_message</span>
-<span class="g g-Whitespace">    </span><span class="mi">576</span>         <span class="o">+</span> <span class="n">out_list</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">578</span> <span class="k">return</span> <span class="n">out_list</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1454,</span> in <span class="ni">AutoFormattedTB.structured_traceback</span><span class="nt">(self, etype, evalue, etb, tb_offset, number_of_lines_of_context)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1452</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1453</span>     <span class="bp">self</span><span class="o">.</span><span class="n">tb</span> <span class="o">=</span> <span class="n">etb</span>
-<span class="ne">-&gt; </span><span class="mi">1454</span> <span class="k">return</span> <span class="n">FormattedTB</span><span class="o">.</span><span class="n">structured_traceback</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1455</span>     <span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">,</span> <span class="n">evalue</span><span class="p">,</span> <span class="n">etb</span><span class="p">,</span> <span class="n">tb_offset</span><span class="p">,</span> <span class="n">number_of_lines_of_context</span>
-<span class="g g-Whitespace">   </span><span class="mi">1456</span> <span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1345,</span> in <span class="ni">FormattedTB.structured_traceback</span><span class="nt">(self, etype, value, tb, tb_offset, number_of_lines_of_context)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1342</span> <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span>
-<span class="g g-Whitespace">   </span><span class="mi">1343</span> <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose_modes</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1344</span>     <span class="c1"># Verbose modes need a full traceback</span>
-<span class="ne">-&gt; </span><span class="mi">1345</span>     <span class="k">return</span> <span class="n">VerboseTB</span><span class="o">.</span><span class="n">structured_traceback</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1346</span>         <span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">tb_offset</span><span class="p">,</span> <span class="n">number_of_lines_of_context</span>
-<span class="g g-Whitespace">   </span><span class="mi">1347</span>     <span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1348</span> <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;Minimal&#39;</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1349</span>     <span class="k">return</span> <span class="n">ListTB</span><span class="o">.</span><span class="n">get_exception_only</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1192,</span> in <span class="ni">VerboseTB.structured_traceback</span><span class="nt">(self, etype, evalue, etb, tb_offset, number_of_lines_of_context)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1183</span> <span class="k">def</span> <span class="nf">structured_traceback</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1184</span>     <span class="bp">self</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1185</span>     <span class="n">etype</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
-   <span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1189</span>     <span class="n">number_of_lines_of_context</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1190</span> <span class="p">):</span>
-<span class="g g-Whitespace">   </span><span class="mi">1191</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;Return a nice text document describing the traceback.&quot;&quot;&quot;</span>
-<span class="ne">-&gt; </span><span class="mi">1192</span>     <span class="n">formatted_exception</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_exception_as_a_whole</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="n">evalue</span><span class="p">,</span> <span class="n">etb</span><span class="p">,</span> <span class="n">number_of_lines_of_context</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1193</span>                                                            <span class="n">tb_offset</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1195</span>     <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Colors</span>  <span class="c1"># just a shorthand + quicker name lookup</span>
-<span class="g g-Whitespace">   </span><span class="mi">1196</span>     <span class="n">colorsnormal</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">Normal</span>  <span class="c1"># used a lot</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1082,</span> in <span class="ni">VerboseTB.format_exception_as_a_whole</span><span class="nt">(self, etype, evalue, etb, number_of_lines_of_context, tb_offset)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1079</span> <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tb_offset</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1080</span> <span class="n">head</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_header</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">etype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_header</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1081</span> <span class="n">records</span> <span class="o">=</span> <span class="p">(</span>
-<span class="ne">-&gt; </span><span class="mi">1082</span>     <span class="bp">self</span><span class="o">.</span><span class="n">get_records</span><span class="p">(</span><span class="n">etb</span><span class="p">,</span> <span class="n">number_of_lines_of_context</span><span class="p">,</span> <span class="n">tb_offset</span><span class="p">)</span> <span class="k">if</span> <span class="n">etb</span> <span class="k">else</span> <span class="p">[]</span>
-<span class="g g-Whitespace">   </span><span class="mi">1083</span> <span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1085</span> <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="g g-Whitespace">   </span><span class="mi">1086</span> <span class="n">skipped</span> <span class="o">=</span> <span class="mi">0</span>
-
-<span class="nn">File /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/IPython/core/ultratb.py:1150,</span> in <span class="ni">VerboseTB.get_records</span><span class="nt">(self, etb, number_of_lines_of_context, tb_offset)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1148</span> <span class="k">while</span> <span class="n">cf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1149</span>     <span class="k">try</span><span class="p">:</span>
-<span class="ne">-&gt; </span><span class="mi">1150</span>         <span class="n">mod</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">tb_frame</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1151</span>         <span class="k">if</span> <span class="n">mod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1152</span>             <span class="n">mod_name</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="vm">__name__</span>
-
-<span class="ne">AttributeError</span>: &#39;tuple&#39; object has no attribute &#39;tb_frame&#39;
+<span class="c1"># if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#     app1.run_server(debug=True, port=8053)</span>
 </pre></div>
 </div>
 </div>
@@ -1025,7 +859,7 @@ Port 8053 is in use by another program. Either identify and stop that program, o
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/1a485248347190d4a850e6da5673f9023921d86ea1248f134d80c34851a42f08.png" src="../_images/1a485248347190d4a850e6da5673f9023921d86ea1248f134d80c34851a42f08.png" />
+<img alt="../_images/182f7dd3c8d6d19426c96b61460233a096f54ddb5721a4b328b886ea43bcf3cf.png" src="../_images/182f7dd3c8d6d19426c96b61460233a096f54ddb5721a4b328b886ea43bcf3cf.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Figure 1: Drug-Related crimes in Portugal vs. Mean of Europe, from 2014 until 2020
 </pre></div>
 </div>
@@ -1100,7 +934,7 @@ Data visualisation: Line graph</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/25b71390ecf576b881839108150b08add48b319caace1bd1884752cdbcaff5fb.png" src="../_images/25b71390ecf576b881839108150b08add48b319caace1bd1884752cdbcaff5fb.png" />
+<img alt="../_images/c9ae06d685f72a67eebce6a04f0f6a445eb768a32faba2df9795466cf5fc6666.png" src="../_images/c9ae06d685f72a67eebce6a04f0f6a445eb768a32faba2df9795466cf5fc6666.png" />
 </div>
 </div>
 </section>
@@ -1168,15 +1002,15 @@ For the analysis and datavisualisation we have only focussed on a couple of stat
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.11/site-packages/numpy/lib/function_base.py:2889: RuntimeWarning: Degrees of freedom &lt;= 0 for slice
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/numpy/lib/function_base.py:2889: RuntimeWarning: Degrees of freedom &lt;= 0 for slice
   c = cov(x, y, rowvar, dtype=dtype)
-/usr/local/lib/python3.11/site-packages/numpy/lib/function_base.py:2748: RuntimeWarning: divide by zero encountered in divide
+/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/numpy/lib/function_base.py:2748: RuntimeWarning: divide by zero encountered in divide
   c *= np.true_divide(1, fact)
-/usr/local/lib/python3.11/site-packages/numpy/lib/function_base.py:2748: RuntimeWarning: invalid value encountered in multiply
+/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/numpy/lib/function_base.py:2748: RuntimeWarning: invalid value encountered in multiply
   c *= np.true_divide(1, fact)
 </pre></div>
 </div>
-<img alt="../_images/3fe4c040c60e35b916458708641c466bbf27a9547999ba3bf6b577ec6af753f7.png" src="../_images/3fe4c040c60e35b916458708641c466bbf27a9547999ba3bf6b577ec6af753f7.png" />
+<img alt="../_images/437e4401c96684d7ab6c24675d184f58a762b6fed9cc978a8d0c4d8a3421716a.png" src="../_images/437e4401c96684d7ab6c24675d184f58a762b6fed9cc978a8d0c4d8a3421716a.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Figure 3: Deathrate of drug overdose mortality for the states Colorado, Georgia, Kansas, Minnesota, Montana, Oregon and Washington.
 </pre></div>
 </div>
@@ -1329,6 +1163,18 @@ For the analysis and datavisualisation we have only focussed on a couple of stat
 </div>
 </div>
 <div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">line</span> <span class="mi">81</span>
+<span class="g g-Whitespace">     </span><span class="mi">78</span> <span class="n">years</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;YEAR&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+<span class="g g-Whitespace">     </span><span class="mi">80</span> <span class="c1"># Initialize the figure</span>
+<span class="ne">---&gt; </span><span class="mi">81</span> <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+<span class="g g-Whitespace">     </span><span class="mi">83</span> <span class="c1"># Create a choropleth map for each year and add it to the figure</span>
+<span class="g g-Whitespace">     </span><span class="mi">84</span> <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="n">years</span><span class="p">:</span>
+
+<span class="ne">NameError</span>: name &#39;go&#39; is not defined
+</pre></div>
+</div>
 </div>
 </div>
 </section>
