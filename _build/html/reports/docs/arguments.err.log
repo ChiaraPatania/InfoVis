@@ -123,7 +123,7 @@ def update_chart(selected_countries, selected_scale, selected_data):
     return fig
 
 if __name__ == '__main__':
-    app2.run_server(debug=True, port=8056)
+    app2.run_server(debug=True, port=8055)
 ------------------
 
 ----- stdout -----
@@ -148,9 +148,9 @@ Requirement already satisfied: blinker>=1.6.2 in /usr/local/lib/python3.11/site-
 Requirement already satisfied: tenacity>=6.2.0 in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (8.3.0)
 Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from plotly>=5.0.0->dash) (23.2)
 Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/lib/python3.11/site-packages (from Werkzeug<3.1->dash) (2.1.5)
------ stdout -----
 Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.11/site-packages (from importlib-metadata->dash) (3.19.2)
 Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.3.2)
+----- stdout -----
 Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.6)
 Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2.2.1)
 Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2024.2.2)
@@ -181,8 +181,8 @@ Requirement already satisfied: blinker>=1.6.2 in /usr/local/Caskroom/miniconda/b
 Requirement already satisfied: tenacity>=6.2.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (8.3.0)
 Requirement already satisfied: packaging in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly>=5.0.0->dash) (24.0)
 Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Werkzeug<3.1->dash) (2.1.5)
------ stdout -----
 Requirement already satisfied: zipp>=0.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from importlib-metadata->dash) (3.17.0)
+----- stdout -----
 Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.3.2)
 Requirement already satisfied: idna<4,>=2.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.7)
 Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2.2.1)
@@ -190,7 +190,7 @@ Requirement already satisfied: certifi>=2017.4.17 in /usr/local/Caskroom/minicon
 Requirement already satisfied: six>=1.7.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from retrying->dash) (1.16.0)
 ----- stderr -----
 Address already in use
-Port 8056 is in use by another program. Either identify and stop that program, or start the server with a different port.
+Port 8055 is in use by another program. Either identify and stop that program, or start the server with a different port.
 ------------------
 
 [0;31m---------------------------------------------------------------------------[0m
@@ -219,7 +219,7 @@ During handling of the above exception, another exception occurred:
 
 Cell [0;32mIn[6], line 109[0m
 [1;32m    108[0m [38;5;28;01mif[39;00m [38;5;18m__name__[39m [38;5;241m==[39m [38;5;124m'[39m[38;5;124m__main__[39m[38;5;124m'[39m:
-[0;32m--> 109[0m     [43mapp2[49m[38;5;241;43m.[39;49m[43mrun_server[49m[43m([49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mport[49m[38;5;241;43m=[39;49m[38;5;241;43m8056[39;49m[43m)[49m
+[0;32m--> 109[0m     [43mapp2[49m[38;5;241;43m.[39;49m[43mrun_server[49m[43m([49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mport[49m[38;5;241;43m=[39;49m[38;5;241;43m8055[39;49m[43m)[49m
 
 File [0;32m/usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages/dash/dash.py:2277[0m, in [0;36mDash.run_server[0;34m(self, *args, **kwargs)[0m
 [1;32m   2272[0m [38;5;250m[39m[38;5;124;03m"""`run_server` is a deprecated alias of `run` and may be removed in a[39;00m
