@@ -228,6 +228,9 @@ nbclient.exceptions.CellExecutionError: An error occurred while executing the fo
 # if __name__ == '__main__':
 #     app.run_server(debug=True , port=8058)
 
+! pip3 install dash pandas plotly
+! pip install dash pandas plotly
+
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -376,15 +379,91 @@ widgets.VBox([fig, country_dropdown, year_dropdown, scale_dropdown, data_dropdow
 
 ------------------
 
+----- stdout -----
+Requirement already satisfied: dash in /usr/local/lib/python3.11/site-packages (2.17.1)
+----- stdout -----
+Requirement already satisfied: pandas in /usr/local/lib/python3.11/site-packages (2.2.1)
+Requirement already satisfied: plotly in /usr/local/lib/python3.11/site-packages (5.22.0)
+Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
+Requirement already satisfied: Werkzeug<3.1 in /usr/local/lib/python3.11/site-packages (from dash) (3.0.3)
+Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-table==5.0.0 in /usr/local/lib/python3.11/site-packages (from dash) (5.0.0)
+Requirement already satisfied: importlib-metadata in /usr/local/lib/python3.11/site-packages (from dash) (7.2.0)
+Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/lib/python3.11/site-packages (from dash) (4.12.2)
+Requirement already satisfied: requests in /usr/local/lib/python3.11/site-packages (from dash) (2.31.0)
+Requirement already satisfied: retrying in /usr/local/lib/python3.11/site-packages (from dash) (1.3.4)
+Requirement already satisfied: nest-asyncio in /usr/local/lib/python3.11/site-packages (from dash) (1.6.0)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.11/site-packages (from dash) (69.0.2)
+----- stdout -----
+Requirement already satisfied: numpy<2,>=1.23.2 in /usr/local/lib/python3.11/site-packages (from pandas) (1.26.4)
+Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.11/site-packages (from pandas) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.11/site-packages (from pandas) (2024.1)
+Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.11/site-packages (from pandas) (2024.1)
+----- stdout -----
+Requirement already satisfied: tenacity>=6.2.0 in /usr/local/lib/python3.11/site-packages (from plotly) (8.3.0)
+Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from plotly) (23.2)
+Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.3)
+Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
+Requirement already satisfied: click>=8.1.3 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
+Requirement already satisfied: blinker>=1.6.2 in /usr/local/lib/python3.11/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
+Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.11/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
+Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/lib/python3.11/site-packages (from Werkzeug<3.1->dash) (2.1.5)
+Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.11/site-packages (from importlib-metadata->dash) (3.19.2)
+----- stdout -----
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/site-packages (from requests->dash) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2.2.1)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/site-packages (from requests->dash) (2024.2.2)
+----- stdout -----
+
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m23.3.1[0m[39;49m -> [0m[32;49m24.1[0m
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49m/usr/local/opt/python@3.11/bin/python3.11 -m pip install --upgrade pip[0m
+----- stdout -----
+Requirement already satisfied: dash in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (2.17.1)
+Requirement already satisfied: pandas in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (2.2.2)
+Requirement already satisfied: plotly in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (5.22.0)
+Requirement already satisfied: Flask<3.1,>=1.0.4 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
+Requirement already satisfied: Werkzeug<3.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (3.0.3)
+Requirement already satisfied: dash-html-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-core-components==2.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.0.0)
+Requirement already satisfied: dash-table==5.0.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (5.0.0)
+----- stdout -----
+Requirement already satisfied: importlib-metadata in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (7.1.0)
+Requirement already satisfied: typing-extensions>=4.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (4.12.1)
+Requirement already satisfied: requests in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (2.32.3)
+Requirement already satisfied: retrying in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.3.4)
+Requirement already satisfied: nest-asyncio in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (1.6.0)
+Requirement already satisfied: setuptools in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from dash) (69.5.1)
+----- stdout -----
+Requirement already satisfied: numpy>=1.22.4 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (1.26.4)
+Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2.9.0)
+Requirement already satisfied: pytz>=2020.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2024.1)
+Requirement already satisfied: tzdata>=2022.7 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from pandas) (2024.1)
+Requirement already satisfied: tenacity>=6.2.0 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly) (8.3.0)
+Requirement already satisfied: packaging in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from plotly) (24.0)
+Requirement already satisfied: Jinja2>=3.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (3.1.4)
+Requirement already satisfied: itsdangerous>=2.1.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (2.2.0)
+Requirement already satisfied: click>=8.1.3 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (8.1.7)
+Requirement already satisfied: blinker>=1.6.2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Flask<3.1,>=1.0.4->dash) (1.8.2)
+Requirement already satisfied: six>=1.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
+----- stdout -----
+Requirement already satisfied: MarkupSafe>=2.1.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from Werkzeug<3.1->dash) (2.1.5)
+Requirement already satisfied: zipp>=0.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from importlib-metadata->dash) (3.17.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (3.7)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2.2.1)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/Caskroom/miniconda/base/envs/jupyterbook/lib/python3.10/site-packages (from requests->dash) (2024.2.2)
+------------------
 
 [0;31m---------------------------------------------------------------------------[0m
 [0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-Cell [0;32mIn[1], line 217[0m
-[1;32m    215[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
-[1;32m    216[0m [38;5;28;01mimport[39;00m [38;5;21;01mplotly[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgraph_objects[39;00m [38;5;28;01mas[39;00m [38;5;21;01mgo[39;00m
-[0;32m--> 217[0m [38;5;28;01mimport[39;00m [38;5;21;01mipywidgets[39;00m [38;5;28;01mas[39;00m [38;5;21;01mwidgets[39;00m
-[1;32m    218[0m [38;5;28;01mfrom[39;00m [38;5;21;01mIPython[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdisplay[39;00m [38;5;28;01mimport[39;00m display
-[1;32m    220[0m [38;5;66;03m# Load datasets[39;00m
+Cell [0;32mIn[1], line 220[0m
+[1;32m    218[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[1;32m    219[0m [38;5;28;01mimport[39;00m [38;5;21;01mplotly[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgraph_objects[39;00m [38;5;28;01mas[39;00m [38;5;21;01mgo[39;00m
+[0;32m--> 220[0m [38;5;28;01mimport[39;00m [38;5;21;01mipywidgets[39;00m [38;5;28;01mas[39;00m [38;5;21;01mwidgets[39;00m
+[1;32m    221[0m [38;5;28;01mfrom[39;00m [38;5;21;01mIPython[39;00m[38;5;21;01m.[39;00m[38;5;21;01mdisplay[39;00m [38;5;28;01mimport[39;00m display
+[1;32m    223[0m [38;5;66;03m# Load datasets[39;00m
 
 [0;31mModuleNotFoundError[0m: No module named 'ipywidgets'
 
